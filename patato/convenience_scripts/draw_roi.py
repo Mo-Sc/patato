@@ -12,7 +12,17 @@ from .. import PAData, ROI
 from ..utils.roi_operations import ROI_NAMES, REGION_COLOURS, close_loop
 
 import os
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+
+try:
+    from matplotlib.backends.backend_tkagg import (
+        FigureCanvasTkAgg,
+        NavigationToolbar2Tk,
+    )
+except ImportError:
+    print(
+        "This seems to be an error in Python 3.13 running on uv (standalone builds of Python). Try to run on Python 3.12."
+    )
+    raise
 
 from importlib.resources import files
 

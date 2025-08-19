@@ -1,7 +1,6 @@
 """Pa_time_data. Defines the time-domain version of PARawData class."""
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
-
 
 import numpy as np
 import xarray

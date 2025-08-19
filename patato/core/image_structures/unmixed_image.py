@@ -1,6 +1,6 @@
 """This defines the data structure for unmixed datasets."""
 
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from typing import Optional, TYPE_CHECKING

@@ -20,6 +20,8 @@ The tool supports many file formats, such as the International Photoacoustic Sta
 ## Getting Started
 In order to use PATATO, you must have a Python environment set up on your computer. We recommend using uv (https://docs.astral.sh/uv/) to run Python. This will help you to avoid dependency conflicts. You can alternatively use Anaconda or virtual environments. 
 
+**We currently recommend running PATATO on Python version 3.12.**
+
 You can install patato with uv like so:
 
 ```shell

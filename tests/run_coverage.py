@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from os.path import isfile
@@ -7,11 +7,14 @@ import unittest
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath("../"))
 
 from coverage import Coverage
 
-cov = Coverage(source=['../patato'], omit=["*test*", "*/convenience_scripts/*", "*/useful_utilities/*"])
+cov = Coverage(
+    source=["../patato"],
+    omit=["*test*", "*/convenience_scripts/*", "*/useful_utilities/*"],
+)
 cov.start()
 
 # noinspection PyPep8
