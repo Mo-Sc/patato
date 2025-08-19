@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 """``patato-convert-simpa``: A script to convert simpa HDF5 output into the PATATO hdf5 format."""

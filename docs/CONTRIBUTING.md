@@ -8,7 +8,7 @@ We'd love to get more people involved with PATATO to add additional features and
 * Consider adding to the documentation (e.g. an example script to illustrate any new functionality). 
 
 If you'd like to help out or for more information,
-please contact Thomas Else at [thomas.else@cruk.cam.ac.uk](mailto:thomas.else@cruk.cam.ac.uk).
+please contact Thomas Else at [telse@ic.ac.uk](mailto:telse@ic.ac.uk).
 
 ## Getting started
 

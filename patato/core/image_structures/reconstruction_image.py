@@ -1,6 +1,6 @@
 """This defines the data structure for reconstructed images."""
 
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from __future__ import annotations

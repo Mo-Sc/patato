@@ -37,7 +37,7 @@ wider dissemination of state-of-the-art analysis methods for PA imaging and thus
 for the community as we translate photoacoustics to the clinic.
 
 * Please report any bugs or issues you find to our GitHub repository
-* Please do get involved! Contact Thomas Else (thomas.else@cruk.cam.ac.uk).
+* Please do get involved! Contact Thomas Else (telse@ic.ac.uk).
 
 The logo was designed by `Elly Pugh <https://ellypugh.com/>`_.
 
