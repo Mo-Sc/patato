@@ -7,7 +7,6 @@ import numpy as np
 
 from patato import PreProcessor, PAData
 from patato.core.image_structures.pa_time_data import PATimeSeries
-from patato.data.get_example_datasets import get_msot_time_series_example
 
 from patato.processing.gpu_preprocessing_algorithm import GPUMSOTPreProcessor
 from patato.processing.preprocessing_algorithm import NumpyPreProcessor
@@ -17,6 +16,10 @@ class TestPreprocessing(unittest.TestCase):
     def setUp(self) -> None:
         self.pa = PAData.from_hdf5("test_data.hdf5")
 
+    def tearDown(self) -> None:
+        self.pa.close()
+        return super().tearDown()
+
     def _test_preprocessor(self, pre_processor):
         detectors_start = self.pa.get_scan_geometry()
 
@@ -25,14 +28,22 @@ class TestPreprocessing(unittest.TestCase):
 
         start_time_series = self.pa.get_time_series()
 
-        preproc = pre_processor(time_factor=time_factor, detector_factor=detector_factor)
+        preproc = pre_processor(
+            time_factor=time_factor, detector_factor=detector_factor
+        )
 
         new_t, d, _ = preproc.run(start_time_series, self.pa)
 
         self.assertIsInstance(d, dict)
         self.assertIsInstance(new_t, PATimeSeries)
-        self.assertEqual(new_t.shape, start_time_series.shape[:-2] + (start_time_series.shape[-2] * detector_factor,
-                                                                      start_time_series.shape[-1] * time_factor))
+        self.assertEqual(
+            new_t.shape,
+            start_time_series.shape[:-2]
+            + (
+                start_time_series.shape[-2] * detector_factor,
+                start_time_series.shape[-1] * time_factor,
+            ),
+        )
         self.assertTrue(np.all(np.isclose(detectors_start[0], d["geometry"][0])))
         return new_t
 

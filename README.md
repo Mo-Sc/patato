@@ -18,14 +18,21 @@ The tool supports many file formats, such as the International Photoacoustic Sta
 * Please do get involved! Contact Thomas Else (thomas.else@cruk.cam.ac.uk).
 
 ## Getting Started
-In order to use PATATO, you must have a Python environment set up on your computer. We recommend using Anaconda (http://anaconda.com) to run Python, particularly if you are using Windows. You may wish to setup a separate Anaconda environment to install PATATO to minimise conflicts between dependency versions.
+In order to use PATATO, you must have a Python environment set up on your computer. We recommend using uv (https://docs.astral.sh/uv/) to run Python. This will help you to avoid dependency conflicts. You can alternatively use Anaconda or virtual environments. 
+
+You can install patato with uv like so:
 
 ```shell
-pip install --upgrade pip setuptools
+uv add patato
+```
+
+Or, using pip:
+
+```shell
 pip install patato
 ```
 
-To setup support for image reconstruction on Windows, or for GPU support, please follow the installation guide in the documentation.
+To setup support for GPU-based reconstruction, please follow the installation guide in the documentation.
 
 ## Citing PATATO
 
@@ -34,5 +41,5 @@ To cite PATATO, please reference our article in the Journal of Open Source softw
 ## Documentation, examples and contributing
 Documentation for PATATO can be found at https://patato.readthedocs.io/en/latest/?badge=latest.
 
-Copyright (c) Thomas Else 2022-23.
+Copyright (c) Thomas Else 2022-25.
 Distributed under a MIT License.

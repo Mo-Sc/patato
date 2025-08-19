@@ -31,21 +31,32 @@ class TestHDF5Load(unittest.TestCase):
         # Reconstructions
         self.file.require_group("recons")
         self.file.require_group("test_recon")
-        self.file.create_dataset("recons/test_recon/0", data=np.ones((1, 11, 333, 333, 1)))
+        self.file.create_dataset(
+            "recons/test_recon/0", data=np.ones((1, 11, 333, 333, 1))
+        )
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_FIELD_OF_VIEW_X"] = 0.025
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_FIELD_OF_VIEW_Y"] = 0.025
-        self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_FIELD_OF_VIEW_Z"] = 0.
+        self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_FIELD_OF_VIEW_Z"] = 0.0
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_NX"] = 333
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_NY"] = 333
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_NZ"] = 1
         self.pa_data = PAData.from_hdf5(self.file)
 
+    def tearDown(self) -> None:
+        self.pa_data.close()
+        self.file.close()
+        return super().tearDown()
+
     def test_from_hdf5_dataset(self):
         r = self.pa_data.get_scan_reconstructions()
         self.assertEqual(len(r), 1)
         self.assertEqual(list(r.keys())[0], ("test_recon", "0"))
-        self.assertEqual(self.pa_data.get_scan_reconstructions()[("test_recon", "0")].get_ax1_label_meaning(),
-                         "wavelengths")
+        self.assertEqual(
+            self.pa_data.get_scan_reconstructions()[
+                ("test_recon", "0")
+            ].get_ax1_label_meaning(),
+            "wavelengths",
+        )
 
     def test_slicing(self):
         data = self.pa_data.get_scan_reconstructions()["test_recon", "0"]
@@ -56,7 +67,9 @@ class TestHDF5Load(unittest.TestCase):
         self.assertTrue(np.all(data[0].ax_1_labels == np.linspace(700, 900, 11)))
         self.assertEqual(data[0, 0].ax_1_labels.size, 1)
         for i in range(11):
-            self.assertEqual(data[0, i].ax_1_labels.item(), np.linspace(700, 900, 11)[i])
+            self.assertEqual(
+                data[0, i].ax_1_labels.item(), np.linspace(700, 900, 11)[i]
+            )
         self.assertEqual(data[0].cmap, "bone")
         self.assertEqual(data[0].two_dims(), ("y", "z"))
 

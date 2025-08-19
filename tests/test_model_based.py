@@ -13,6 +13,10 @@ class TestModelBased(unittest.TestCase):
     def setUp(self) -> None:
         self.pa = PAData.from_hdf5("test_data.hdf5")
 
+    def tearDown(self) -> None:
+        self.pa.close()
+        return super().tearDown()
+
     def test_model_based_reconstruction(self):
         N, fov = (100, 100, 1), (0.025, 0.025, 1)
         mb = pat.ModelBasedReconstruction(N, fov, pa_example=self.pa, iter_lim=100)

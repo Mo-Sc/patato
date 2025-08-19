@@ -6,18 +6,20 @@ import unittest
 import numpy as np
 
 from patato import Reconstruction, SO2Calculator, SpectralUnmixer, THbCalculator, PAData
-from patato.data.get_example_datasets import get_msot_time_series_example
 
 
 class TestUnmixing(unittest.TestCase):
     def test_numpy_unmix(self):
         image = np.zeros((1, 2, 333, 333, 1))
-        image[:, 0] += 1112  # Manually chosen values to match the absorption of 650 nm and 800 nm for 78% oxygenated Hb
+        image[:, 0] += (
+            1112  # Manually chosen values to match the absorption of 650 nm and 800 nm for 78% oxygenated Hb
+        )
         image[:, 1] += 804
         wavelengths = np.array([650, 800])
 
-        r = Reconstruction(image, wavelengths,
-                           field_of_view=(1, 1, 1))  # field of view is the width of the image along x, y, z
+        r = Reconstruction(
+            image, wavelengths, field_of_view=(1, 1, 1)
+        )  # field of view is the width of the image along x, y, z
 
         r.attributes["RECONSTRUCTION_FIELD_OF_VIEW_X"] = 1
         r.attributes["RECONSTRUCTION_FIELD_OF_VIEW_Y"] = 1
@@ -29,7 +31,8 @@ class TestUnmixing(unittest.TestCase):
         um, _, _ = um.run(r, None)
         so2, _, _ = so.run(um, None)
 
-        self.assertAlmostEqual(np.mean(so2.raw_data), 0.7799958428309177)
+        rd = np.array(so2.raw_data)
+        self.assertTrue(np.abs(np.mean(rd) - 0.7799958428309177) < 1e-7)
 
     def test_unmix(self):
         pa = PAData.from_hdf5("test_data.hdf5")
@@ -39,17 +42,24 @@ class TestUnmixing(unittest.TestCase):
 
         unmixer = SpectralUnmixer(["Hb", "HbO2"], pa.get_wavelengths())
 
-        u, _, _ = unmixer.run(r, pa)
+        u, _, _ = unmixer.run(r, pa)  # type: ignore
 
         so2_calc = SO2Calculator()
         s, _, _ = so2_calc.run(u, pa)
 
         thb_calc = THbCalculator()
         t, _, _ = thb_calc.run(u, pa)
-        self.assertTrue(np.all(pa.get_scan_so2_time_mean().raw_data == np.mean(pa.get_scan_so2().raw_data,
-                                                                               axis=(0, 1))))
-        self.assertTrue(np.all(pa.get_scan_so2_time_standard_deviation().raw_data == np.std(pa.get_scan_so2().raw_data,
-                                                                                            axis=(0, 1))))
+
+        rd = np.array(pa.get_scan_so2().raw_data)  # type: ignore
+        self.assertTrue(
+            np.all(pa.get_scan_so2_time_mean().raw_data == np.mean(rd, axis=(0, 1)))
+        )
+        self.assertTrue(
+            np.all(
+                pa.get_scan_so2_time_standard_deviation().raw_data
+                == np.std(rd, axis=(0, 1))
+            )
+        )
 
         # Get these to do sanity checks - better to implement proper tests in future.
         self.assertIsNone(pa.get_segmentation())
@@ -68,6 +78,7 @@ class TestUnmixing(unittest.TestCase):
         self.assertEqual(u.shape, (1, 2, 1, 333, 333))
         self.assertEqual(s.shape, (1, 1, 1, 333, 333))
         self.assertEqual(t.shape, (1, 1, 1, 333, 333))
+        pa.close()
 
 
 if __name__ == "__main__":
