@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 """``patato-import-ithera``: A script to convert iThera MSOT Data into the PATATO hdf5 format."""

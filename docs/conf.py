@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 # Configuration file for the Sphinx documentation builder.
@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "PATATO"
-copyright = "2023, Thomas Else"
+copyright = "2025, Thomas Else"
 author = "Thomas Else"
 
 # -- General configuration ---------------------------------------------------
@@ -48,8 +48,6 @@ autodoc_mock_imports = [
     "pacfish",
     "patato.recon.model_based.generate_model",
     "patato.recon.model_based.generate_model_refraction",
-    "gdown",
-    "zipfile",
 ]
 autosummary_mock_imports = autodoc_mock_imports
 

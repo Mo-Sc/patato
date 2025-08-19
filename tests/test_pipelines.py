@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import unittest
@@ -43,3 +43,4 @@ class TestPipelines(unittest.TestCase):
         self.assertEqual(len(additional_results), 0)
         self.assertEqual(type(results[0]), Reconstruction)
         self.assertEqual(type(results[1]), UnmixedData)
+        pa.close()

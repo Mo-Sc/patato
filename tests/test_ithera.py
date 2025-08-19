@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import unittest
@@ -53,3 +53,6 @@ class TestITheraImport(unittest.TestCase):
             )
         )
         self.assertTrue(np.all(new_t1.raw_data[()] == new_t2.raw_data[()]))
+
+        pa_1.close()
+        pa_2.close()

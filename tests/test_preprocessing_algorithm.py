@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import unittest
@@ -16,6 +16,10 @@ from patato.processing.preprocessing_algorithm import NumpyPreProcessor
 class TestPreprocessing(unittest.TestCase):
     def setUp(self) -> None:
         self.pa = PAData.from_hdf5("test_data.hdf5")
+
+    def tearDown(self) -> None:
+        self.pa.close()
+        return super().tearDown()
 
     def _test_preprocessor(self, pre_processor):
         detectors_start = self.pa.get_scan_geometry()

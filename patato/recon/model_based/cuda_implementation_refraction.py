@@ -5,7 +5,7 @@ try:
     cuda_enabled = True
 except ImportError:
     cuda_enabled = False
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from os.path import dirname, join, exists

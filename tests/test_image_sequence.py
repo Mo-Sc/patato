@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import tempfile
@@ -41,6 +41,11 @@ class TestHDF5Load(unittest.TestCase):
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_NY"] = 333
         self.file["recons/test_recon/0"].attrs["RECONSTRUCTION_NZ"] = 1
         self.pa_data = PAData.from_hdf5(self.file)
+
+    def tearDown(self) -> None:
+        self.pa_data.close()
+        self.file.close()
+        return super().tearDown()
 
     def test_from_hdf5_dataset(self):
         r = self.pa_data.get_scan_reconstructions()

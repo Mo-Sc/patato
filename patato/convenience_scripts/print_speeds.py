@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import argparse
@@ -7,7 +7,6 @@ from os.path import join, split
 
 import h5py
 from ..utils import sort_key
-from tabulate import tabulate
 
 
 def init_argparse():
@@ -22,6 +21,14 @@ def init_argparse():
 def main():
     p = init_argparse()
     args = p.parse_args()
+
+    try:
+        from tabulate import tabulate
+    except ImportError:
+        print(
+            "Please install tabulate (e.g. pip install tabulate or uv add tabulate) to run this script."
+        )
+        raise
 
     names = []
     cs = []

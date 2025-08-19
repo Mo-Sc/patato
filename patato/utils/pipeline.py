@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import logging
@@ -8,14 +8,13 @@ from typing import Tuple
 from ..io.hdf.hdf5_interface import HDF5Writer
 from ..io.msot_data import PAData
 from ..processing.processing_algorithm import ProcessingAlgorithm, ProcessingResult
-from typing_extensions import Deque
 
 
 def run_batch(start_algorithm, input_data, pa_data, start_dict=None):
     # Set up a queue for running datasets, starting with the input data and the first processing algorithm:
     if start_dict is None:
         start_dict = {}
-    run_queue: Deque[Tuple[ProcessingAlgorithm, ProcessingResult, dict]] = deque(
+    run_queue: deque[Tuple[ProcessingAlgorithm, ProcessingResult, dict]] = deque(
         [(start_algorithm, input_data, start_dict)]
     )
 
@@ -84,7 +83,7 @@ def run_pipeline(
     for i in range(0, input_data.shape[0], n_batch):
         # Loop through batches and run algorithms.
         logging.info(
-            f"Running batch {i//n_batch + 1} of {(input_data.shape[0]-1)//n_batch + 1}"
+            f"Running batch {i // n_batch + 1} of {(input_data.shape[0] - 1) // n_batch + 1}"
         )
 
         # Get the input datasets:

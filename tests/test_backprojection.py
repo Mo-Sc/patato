@@ -1,8 +1,7 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import unittest
-from importlib.util import find_spec
 
 import numpy as np
 
@@ -23,6 +22,10 @@ class TestBackprojection(unittest.TestCase):
         self.filtered_time_series, self.new_settings, _ = self.preproc.run(
             self.pa.get_time_series(), self.pa
         )
+
+    def tearDown(self) -> None:
+        self.pa.close()
+        return super().tearDown()
 
     def _test_backprojector(self, reconstructor_class):
         reconstructor = reconstructor_class([333, 334, 1], [0.025, 0.025, 1.0])
@@ -51,7 +54,9 @@ class TestBackprojection(unittest.TestCase):
         self._test_backprojector(SlowBackprojection)
 
     def test_opencl_reconstruction(self):
-        if find_spec("pyopencl") is None:
-            return None
+        try:
+            import pyopencl  # pyright: ignore[reportMissingImports] # noqa: F401
+        except ImportError:
+            return  # Skip test if pyopencl is not installed
 
         self._test_backprojector(OpenCLBackprojection)

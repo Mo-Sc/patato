@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 import unittest
 
@@ -12,6 +12,10 @@ from patato import PAData
 class TestModelBased(unittest.TestCase):
     def setUp(self) -> None:
         self.pa = PAData.from_hdf5("test_data.hdf5")
+
+    def tearDown(self) -> None:
+        self.pa.close()
+        return super().tearDown()
 
     def test_model_based_reconstruction(self):
         N, fov = (100, 100, 1), (0.025, 0.025, 1)

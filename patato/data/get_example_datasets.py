@@ -1,8 +1,7 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import os
-import zipfile
 from tempfile import mkdtemp
 
 from .. import PAData, iTheraMSOT
@@ -64,6 +63,14 @@ def get_ithera_msot_time_series_example(image_type="so2"):
     dataset : PAData
         The MSOT dataset.
     """
+
+    try:
+        import zipfile
+    except ImportError:
+        print(
+            "Please install zipfile package (e.g. pip install zipfile) to run this function."
+        )
+        raise
     import glob
 
     print(glob.glob(get_patato_data_folder() + "/*"))

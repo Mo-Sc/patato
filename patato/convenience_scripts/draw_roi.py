@@ -12,7 +12,17 @@ from .. import PAData, ROI
 from ..utils.roi_operations import ROI_NAMES, REGION_COLOURS, close_loop
 
 import os
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+
+try:
+    from matplotlib.backends.backend_tkagg import (
+        FigureCanvasTkAgg,
+        NavigationToolbar2Tk,
+    )
+except ImportError:
+    print(
+        "This seems to be an error in Python 3.13 running on uv (standalone builds of Python). Try to run on Python 3.12."
+    )
+    raise
 
 from importlib.resources import files
 
@@ -303,7 +313,7 @@ class HDF5ViewerApp:
 
         rois = self.pa_data_selected.get_rois()
         # Plot the ROIS
-        for (r, n) in rois:
+        for r, n in rois:
             draw_all_rois = False  # Update this to a check-box
             clinical = self.pa_data_selected.is_clinical()
             frame_type = "z" if not clinical else "repetition"

@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import logging
@@ -32,7 +32,7 @@ def validate_opencl_input(
         logging.warning(
             "Warning: order of signal is not C_CONTIGUOUS, this might hinder performance."
         )
-    if not isinstance(fs, (float, np.float32, np.float64)):
+    if not (isinstance(fs, (float, np.float64, np.float32))):
         fs = float(fs)
     if not detectors.flags["C_CONTIGUOUS"]:
         detectors = detectors.copy()

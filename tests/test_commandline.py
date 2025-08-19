@@ -1,14 +1,10 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import unittest
 from pathlib import Path
 from unittest import mock
 import argparse
-
-from patato.convenience_scripts.convert_binary_to_hdf5 import main as main_convert
-from patato.convenience_scripts.process_msot import main as main_process_msot
-from patato.convenience_scripts.unmix import main as main_unmix
 
 
 class TestCommandLine(unittest.TestCase):
@@ -28,8 +24,9 @@ class TestCommandLine(unittest.TestCase):
         ),
     )
     def test_import_ithera(self, mock_args):
+        from patato.convenience_scripts.convert_binary_to_hdf5 import main
 
-        main_convert()
+        main()
 
     @mock.patch(
         "argparse.ArgumentParser.parse_args",
@@ -49,8 +46,9 @@ class TestCommandLine(unittest.TestCase):
         ),
     )
     def test_process_msot(self, mock_args):
+        from patato.convenience_scripts.process_msot import main
 
-        main_process_msot()
+        main()
 
     @mock.patch(
         "argparse.ArgumentParser.parse_args",
@@ -64,5 +62,6 @@ class TestCommandLine(unittest.TestCase):
         ),
     )
     def test_unmix(self, mock_args):
+        from patato.convenience_scripts.unmix import main
 
-        main_unmix()
+        main()
