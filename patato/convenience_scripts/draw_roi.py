@@ -409,7 +409,7 @@ class HDF5ViewerApp:
                     # Populate the ROI listbox with items from the 'roi' group
                     self.update_image()
                 else:
-                    self.show_error_message(f"No reconstructions available.")
+                    self.show_error_message("No reconstructions available.")
             except Exception as e:
                 import traceback
 

@@ -5,7 +5,6 @@ import unittest
 import numpy as np
 
 from patato import PAData
-from patato.data.get_example_datasets import get_msot_time_series_example
 
 
 class TestMSOTData(unittest.TestCase):

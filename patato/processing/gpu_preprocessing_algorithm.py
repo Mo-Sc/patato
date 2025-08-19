@@ -109,31 +109,31 @@ class GPUMSOTPreProcessor(TimeSeriesProcessingAlgorithm):
             if a not in new_time_series.attributes:
                 new_time_series.attributes[a] = time_series.attributes[a]
 
-        new_time_series.attributes[PreprocessingAttributeTags.IMPULSE_RESPONSE] = (
-            self.irf_correct
-        )
-        new_time_series.attributes[PreprocessingAttributeTags.PROCESSING_ALGORITHM] = (
-            self.get_algorithm_name()
-        )
+        new_time_series.attributes[
+            PreprocessingAttributeTags.IMPULSE_RESPONSE
+        ] = self.irf_correct
+        new_time_series.attributes[
+            PreprocessingAttributeTags.PROCESSING_ALGORITHM
+        ] = self.get_algorithm_name()
         new_time_series.attributes[PreprocessingAttributeTags.WINDOW_SIZE] = self.window
         new_time_series.attributes[PreprocessingAttributeTags.ENVELOPE_DETECTION] = (
             self.absolute == "abs"
         )
-        new_time_series.attributes[PreprocessingAttributeTags.HILBERT_TRANSFORM] = (
-            self.hilbert
-        )
+        new_time_series.attributes[
+            PreprocessingAttributeTags.HILBERT_TRANSFORM
+        ] = self.hilbert
         new_time_series.attributes[
             PreprocessingAttributeTags.DETECTOR_INTERPOLATION
         ] = self.detector_factor
-        new_time_series.attributes[PreprocessingAttributeTags.TIME_INTERPOLATION] = (
-            self.time_factor
-        )
-        new_time_series.attributes[PreprocessingAttributeTags.LOW_PASS_FILTER] = (
-            self.lp_filter
-        )
-        new_time_series.attributes[PreprocessingAttributeTags.HIGH_PASS_FILTER] = (
-            self.hp_filter
-        )
+        new_time_series.attributes[
+            PreprocessingAttributeTags.TIME_INTERPOLATION
+        ] = self.time_factor
+        new_time_series.attributes[
+            PreprocessingAttributeTags.LOW_PASS_FILTER
+        ] = self.lp_filter
+        new_time_series.attributes[
+            PreprocessingAttributeTags.HIGH_PASS_FILTER
+        ] = self.hp_filter
         new_time_series.attributes["CorrectionFactorApplied"] = (
             overall_correction_factor is not None
         )

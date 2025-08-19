@@ -22,9 +22,9 @@ def validate_opencl_input(
     signal: np.ndarray, fs, detectors, n_pixels, field_of_view, speed_of_sound
 ):
     # Make sure that the input to the OpenCL code is valid.
-    if type(signal) is not np.ndarray:
+    if not isinstance(signal, np.ndarray):
         signal = np.asarray(signal)
-    if type(detectors) is not np.ndarray:
+    if not isinstance(detectors, np.ndarray):
         detectors = np.asarray(detectors)
 
     if not signal.flags["C_CONTIGUOUS"]:
@@ -32,13 +32,13 @@ def validate_opencl_input(
         logging.warning(
             "Warning: order of signal is not C_CONTIGUOUS, this might hinder performance."
         )
-    if not (type(fs) == float or type(fs) in [np.float64, np.float32]):
+    if not (isinstance(fs, (float, np.float64, np.float32))):
         fs = float(fs)
     if not detectors.flags["C_CONTIGUOUS"]:
         detectors = detectors.copy()
     assert type(n_pixels[0]) in [int, np.int32]
     field_of_view = tuple(float(x) for x in field_of_view)
-    if type(speed_of_sound) not in [float, np.float32, np.float64]:
+    if not isinstance(speed_of_sound, (float, np.float32, np.float64)):
         speed_of_sound = float(speed_of_sound)
     return signal, fs, detectors, n_pixels, field_of_view, speed_of_sound
 
@@ -110,10 +110,15 @@ class OpenCLBackprojection(ReconstructionAlgorithm):
         cldas=None,
         **kwargs,
     ) -> np.ndarray:
-        signal, fs, detectors, n_pixels, field_of_view, speed_of_sound = (
-            validate_opencl_input(
-                signal, fs, detectors, n_pixels, field_of_view, speed_of_sound
-            )
+        (
+            signal,
+            fs,
+            detectors,
+            n_pixels,
+            field_of_view,
+            speed_of_sound,
+        ) = validate_opencl_input(
+            signal, fs, detectors, n_pixels, field_of_view, speed_of_sound
         )
         if type(signal) is pyopencl.array.Array and queue is None:
             queue = signal.queue

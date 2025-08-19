@@ -16,7 +16,7 @@ def to_binary_mask(vertices, min_x, max_x, nx, min_y, max_y, ny):
     from matplotlib import path
     from shapely.geometry import Polygon, Point, MultiPolygon
 
-    if type(vertices) == np.ndarray or type(vertices) == list:
+    if isinstance(vertices, (np.ndarray, list)):
         vert_path = path.Path(vertices, closed=False)
     else:
         vert_path = vertices
@@ -24,7 +24,7 @@ def to_binary_mask(vertices, min_x, max_x, nx, min_y, max_y, ny):
     ys = np.linspace(min_y, max_y, ny)
     X, Y = np.meshgrid(xs, ys)
     points = np.array([X.flatten(), Y.flatten()]).T
-    if type(vert_path) in [Polygon, MultiPolygon]:
+    if isinstance(vert_path, (Polygon, MultiPolygon)):
         points = [Point(r) for r in points]
         mask = np.array([vert_path.contains(r) for r in points])  # .reshape(X.shape)
     else:
@@ -35,10 +35,10 @@ def to_binary_mask(vertices, min_x, max_x, nx, min_y, max_y, ny):
 def get_polygon_mask(p, fov_x, fov_y, nx, ny):
     from shapely.geometry import Polygon, MultiPolygon
 
-    if type(fov_x) not in [list, tuple, np.ndarray]:
+    if not isinstance(fov_x, (list, tuple, np.ndarray)):
         fov_x = [-fov_x / 2, fov_x / 2]
         fov_y = [-fov_y / 2, fov_y / 2]
-    if type(p) == Polygon:
+    if isinstance(p, Polygon):
         mask = to_binary_mask(
             np.array(p.exterior.coords.xy).T,
             fov_x[0],
@@ -58,7 +58,7 @@ def get_polygon_mask(p, fov_x, fov_y, nx, ny):
                 fov_y[1],
                 ny,
             )
-    elif type(p) == MultiPolygon:
+    elif isinstance(p, MultiPolygon):
         geoms = list(p.geoms)
         mask = get_polygon_mask(geoms[0], fov_x, fov_y, nx, ny)
         for g in geoms[1:]:
@@ -76,10 +76,10 @@ def generate_mask(vertices, fov_x, nx, fov_y=None, ny=None):
         fov_y = fov_x
     if ny is None:
         ny = nx
-    if type(fov_x) not in [list, tuple, np.ndarray]:
+    if not isinstance(fov_x, (list, tuple, np.ndarray)):
         fov_x = [-fov_x / 2, fov_x / 2]
         fov_y = [-fov_y / 2, fov_y / 2]
-    if type(vertices) in [Polygon, MultiPolygon]:
+    if isinstance(vertices, (Polygon, MultiPolygon)):
         mask = get_polygon_mask(vertices, fov_x, fov_y, nx, ny)
     else:
         mask = to_binary_mask(vertices, fov_x[0], fov_x[1], nx, fov_y[0], fov_y[1], ny)

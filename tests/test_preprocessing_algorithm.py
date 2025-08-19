@@ -2,6 +2,7 @@
 #  License: MIT
 
 import unittest
+from importlib.util import find_spec
 
 import numpy as np
 
@@ -48,10 +49,8 @@ class TestPreprocessing(unittest.TestCase):
         return new_t
 
     def test_gpu_processing(self):
-        try:
-            import cupy as cp
-        except ImportError:
-            return None  # Skip test if cupy is not installed
+        if find_spec("cupy") is None:
+            return None
         new_t = self._test_preprocessor(GPUMSOTPreProcessor)
         print(np.mean(new_t[0, 0].values))
 

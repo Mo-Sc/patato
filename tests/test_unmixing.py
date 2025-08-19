@@ -11,9 +11,9 @@ from patato import Reconstruction, SO2Calculator, SpectralUnmixer, THbCalculator
 class TestUnmixing(unittest.TestCase):
     def test_numpy_unmix(self):
         image = np.zeros((1, 2, 333, 333, 1))
-        image[:, 0] += (
-            1112  # Manually chosen values to match the absorption of 650 nm and 800 nm for 78% oxygenated Hb
-        )
+        image[
+            :, 0
+        ] += 1112  # Manually chosen values to match the absorption of 650 nm and 800 nm for 78% oxygenated Hb
         image[:, 1] += 804
         wavelengths = np.array([650, 800])
 

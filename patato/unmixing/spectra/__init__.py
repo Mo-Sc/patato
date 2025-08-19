@@ -83,7 +83,7 @@ class Melanin(Spectrum):
 
     @staticmethod
     def get_spectrum(wavelengths: np.ndarray) -> np.ndarray:
-        if type(wavelengths) != np.ndarray:
+        if not isinstance(wavelengths, np.ndarray):
             wavelengths = np.array(wavelengths)
         return 1.7e12 * wavelengths ** (-3.48)
 
