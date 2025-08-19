@@ -15,10 +15,10 @@ PATATO is an Open-Source project to enable the analysis of photoacoustic (PA) im
 The tool supports many file formats, such as the International Photoacoustic Standardisation Consortium (IPASC) data format, and it can be extended to support custom data formats. We hope that this toolkit can enable faster and wider dissemination of analysis techniques for PA imaging and provide a useful tool to the community.
 
 * Please report any bugs or issues you find to our GitHub repository
-* Please do get involved! Contact Thomas Else (thomas.else@cruk.cam.ac.uk).
+* Please do get involved! Contact Thomas Else (telse@ic.ac.uk).
 
 ## Getting Started
-In order to use PATATO, you must have a Python environment set up on your computer. We recommend using uv (https://docs.astral.sh/uv/) to run Python. This will help you to avoid dependency conflicts. You can alternatively use Anaconda or virtual environments. 
+In order to use PATATO, you must have a Python environment set up on your computer. We recommend using uv (https://docs.astral.sh/uv/) to run Python. This will help you to avoid dependency conflicts. You can alternatively use Anaconda or virtual environments.
 
 **We currently recommend running PATATO on Python version 3.12.**
 
@@ -38,7 +38,7 @@ To setup support for GPU-based reconstruction, please follow the installation gu
 
 ## Citing PATATO
 
-To cite PATATO, please reference our article in the Journal of Open Source software, [here](https://joss.theoj.org/papers/456eaf591244858915ad8730dcbc19d7). 
+To cite PATATO, please reference our article in the Journal of Open Source software, [here](https://joss.theoj.org/papers/456eaf591244858915ad8730dcbc19d7).
 
 ## Documentation, examples and contributing
 Documentation for PATATO can be found at https://patato.readthedocs.io/en/latest/?badge=latest.
