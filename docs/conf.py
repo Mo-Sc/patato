@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath("../"))
 # -- Project information -----------------------------------------------------
 
 project = "PATATO"
-copyright = "2023, Thomas Else"
+copyright = "2025, Thomas Else"
 author = "Thomas Else"
 
 # -- General configuration ---------------------------------------------------

@@ -85,3 +85,18 @@ write_to = "patato/_version.py"
 [tool.cibuildwheel]
 # Disable building PyPy wheels on all platforms
 skip = "pp*"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ipython>=8.12.3",
+    "ipywidgets>=8.1.7",
+    "jupyterlab>=4.3.8",
+    "myst-parser>=3.0.1",
+    "nbsphinx>=0.9.7",
+    "pandoc>=2.4",
+    "pydata-sphinx-theme>=0.14.4",
+    "sphinx>=6.2.1",
+    "sphinx-book-theme>=1.0.1",
+    "sphinx-rtd-theme>=3.0.2",
+]
