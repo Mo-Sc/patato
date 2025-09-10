@@ -177,3 +177,9 @@ class SimpaImporter(ReaderInterface):
 
     def _get_water_absorption(self):
         return np.zeros((len(self.wavelengths),)), 0
+
+    def close(self):
+        """
+        Close the hdf5 file.
+        """
+        self.file.close()

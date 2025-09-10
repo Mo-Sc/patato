@@ -56,9 +56,9 @@ def load_image_from_hdf5(cls, dataset, file):
 
     # This is very hacky, could do with improving this.
     if ax_1_meaning == HDF5Tags.WAVELENGTH:
-        ax_1_labels = dataset.attrs.get(HDF5Tags.WAVELENGTH, file["wavelengths"])
+        ax_1_labels = dataset.attrs.get(HDF5Tags.WAVELENGTH, file[HDF5Tags.WAVELENGTH])
     elif ax_1_meaning == "SPECTRA":
-        ax_1_labels = dataset.attrs["SPECTRA"]
+        ax_1_labels = dataset.attrs.get("SPECTRA", dataset.attrs.get("spectra"))
     elif ax_1_meaning == "":
         # For ultrasound
         ax_1_labels = np.arange(dataset_da.shape[1])
@@ -329,6 +329,12 @@ class HDF5Writer(WriterInterface):
             if group in self.file:
                 del self.file[group]
 
+    def close(self):
+        """
+        Close the hdf5 file.
+        """
+        self.file.close()
+
 
 class HDF5Reader(ReaderInterface):
     def _get_rois(self):
@@ -455,6 +461,12 @@ class HDF5Reader(ReaderInterface):
 
     def _get_segmentation(self):
         return self.file.get(HDF5Tags.SEGMENTATION, None)
+
+    def close(self):
+        """
+        Close the hdf5 file.
+        """
+        self.file.close()
 
 
 class PACFISHInterface(ReaderInterface):

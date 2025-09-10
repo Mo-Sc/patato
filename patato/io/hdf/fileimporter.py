@@ -39,8 +39,6 @@ def slice_1d(data, test_data, slices, dim=-1):
 
 
 class ReaderInterface(metaclass=ABCMeta):
-    def close(self):
-        pass
 
     def is_clinical(self):
         return np.all(np.isnan(self.get_scanner_z_position()[:])) or np.all(
@@ -89,6 +87,10 @@ class ReaderInterface(metaclass=ABCMeta):
                     for i, roi in enumerate(interpolated_rois):
                         output[(roi.roi_class + "_" + roi.position, str(i))] = roi
         return output
+
+    @abstractmethod
+    def close(self):
+        pass
 
     @abstractmethod
     def _get_segmentation(self):
@@ -243,9 +245,10 @@ class ReaderInterface(metaclass=ABCMeta):
         pass
 
     def get_wavelengths(self):
-        test_data = self._get_run_numbers()
+        # test_data = self._get_run_numbers()
         t = self._get_wavelengths()
-        t = slice_1d(t, test_data, self.slices, -1)
+        # todo: reimplement this to support slicing. For that, RUN has to be set. Could be taken for example from the shape of TIMESTAMP
+        # t = slice_1d(t, test_data, self.slices, -1)
         return t
 
     @abstractmethod
@@ -270,9 +273,9 @@ class ReaderInterface(metaclass=ABCMeta):
                 for dataset_type in all_datasets:
                     for reconstruction_type in all_datasets[dataset_type]:
                         if all_datasets[dataset_type][reconstruction_type]:
-                            all_datasets[dataset_type][
-                                reconstruction_type
-                            ] = all_datasets[dataset_type][reconstruction_type][s]
+                            all_datasets[dataset_type][reconstruction_type] = (
+                                all_datasets[dataset_type][reconstruction_type][s]
+                            )
         return all_datasets
 
     @abstractmethod
@@ -295,8 +298,6 @@ class ReaderInterface(metaclass=ABCMeta):
 
 
 class WriterInterface(metaclass=ABCMeta):
-    def close(self):
-        pass
 
     def save_file(self, reader: ReaderInterface):
         # TODO: implement updating.
@@ -325,6 +326,10 @@ class WriterInterface(metaclass=ABCMeta):
                     self.add_image(recon)
         self.set_scan_comment(reader.get_scan_comment())
         self.set_sampling_frequency(reader.get_sampling_frequency())
+
+    @abstractmethod
+    def close(self):
+        pass
 
     @abstractmethod
     def set_segmentation(self, seg):

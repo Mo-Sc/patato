@@ -1,7 +1,6 @@
 #  Copyright (c) Thomas Else 2023.
 #  License: MIT
 
-
 class PreprocessingAttributeTags:
     HIGH_PASS_FILTER = "FILTER_HIGH_PASS"
     LOW_PASS_FILTER = "FILTER_LOW_PASS"
@@ -60,17 +59,17 @@ class GCAttributeTags:
 
 class HDF5Tags:
     POWER = "POWER"
-    OVERALL_CORR = "CORRECTION_FACTOR"
-    RAW_DATA = "RAW_DATA"
-    RECONSTRUCTION = "reconstructions"
+    OVERALL_CORR = "OverallCorrectionFactor"
+    RAW_DATA = "raw_data"
+    RECONSTRUCTION = "recons"
     UNMIXED = "unmixed"
     SO2 = "so2"
     THB = "thb"
     SPEED_OF_SOUND = "speedofsound"
     SAMPLING_FREQ = "fs"
     SCAN_GEOMETRY = "GEOMETRY"
-    WAVELENGTH = "WAVELENGTHS"
-    IMPULSE_RESPONSE = "IMPULSE_RESPONSE"
+    WAVELENGTH = "wavelengths"
+    IMPULSE_RESPONSE = "irf"
     Z_POSITION = "Z-POS"
     REPETITION = "REPETITION"
     REGIONS_OF_INTEREST = "rois"
@@ -78,7 +77,7 @@ class HDF5Tags:
     DELTA_SO2 = "dso2"
     BASELINE_SO2 = "baseline_so2"
     BASELINE_SO2_STANDARD_DEVIATION = "baseline_so2_sigma"
-    TIMESTAMP = "TIMESTAMP"
+    TIMESTAMP = "timestamp"
     TEMPERATURE = "TEMPERATURE"
     ULTRASOUND_FRAME_OFFSET = "ultraSound-frame-offset"
     DATE = "date"
@@ -86,7 +85,7 @@ class HDF5Tags:
     SCAN_COMMENT = "comment"
     WATER_ABSORPTION_COEFF = "water-absorption-coefficients"
     WATER_PATHLENGTH = "pathlength"
-    ULTRASOUND = "ultrasounds"
+    ULTRASOUND = "ultrasound"
     ULTRASOUND_FIELD_OF_VIEW = "fov"
     SCAN_NAME = "name"
     SEGMENTATION = "seg"
