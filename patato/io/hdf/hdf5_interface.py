@@ -18,6 +18,7 @@ from ...io.attribute_tags import (
 from ...io.hdf.fileimporter import WriterInterface, ReaderInterface
 from ...utils.rois.roi_type import ROI
 import json
+import ast
 
 if TYPE_CHECKING:
     import numpy as np
@@ -59,6 +60,8 @@ def load_image_from_hdf5(cls, dataset, file):
         ax_1_labels = dataset.attrs.get(HDF5Tags.WAVELENGTH, file[HDF5Tags.WAVELENGTH])
     elif ax_1_meaning == "SPECTRA":
         ax_1_labels = dataset.attrs.get("SPECTRA", dataset.attrs.get("spectra"))
+        if type(ax_1_labels) == str:
+            ax_1_labels = ast.literal_eval(ax_1_labels)
     elif ax_1_meaning == "":
         # For ultrasound
         ax_1_labels = np.arange(dataset_da.shape[1])
