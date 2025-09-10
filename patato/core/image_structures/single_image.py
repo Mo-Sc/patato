@@ -1,6 +1,6 @@
 """Defines a datatype for datasets that have been processed to only have one value per scan per pixel."""
 
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from typing import List, TYPE_CHECKING

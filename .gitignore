@@ -1,6 +1,6 @@
 .DS_Store
 patato/_version.py
-
+.vscode/
 .idea/
 *.npz
 *.hdf5

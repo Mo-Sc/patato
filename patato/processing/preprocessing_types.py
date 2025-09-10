@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from typing import Sequence
@@ -9,8 +9,10 @@ from .jax_preprocessing_algorithm import PreProcessor
 from .processing_algorithm import TimeSeriesProcessingAlgorithm
 
 
-PREPROCESSING_METHODS: Sequence[type(TimeSeriesProcessingAlgorithm)] = [NumpyPreProcessor,
-                                                                        GPUMSOTPreProcessor,
-                                                                        PreProcessor]
+PREPROCESSING_METHODS: Sequence[type(TimeSeriesProcessingAlgorithm)] = [
+    NumpyPreProcessor,
+    GPUMSOTPreProcessor,
+    PreProcessor,
+]
 
 PREPROCESSING_NAMES = {x.get_algorithm_name(): x for x in PREPROCESSING_METHODS}

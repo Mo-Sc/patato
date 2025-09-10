@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from typing import Sequence
@@ -21,7 +21,7 @@ class SlowBackprojection(ReconstructionAlgorithm):
         n_pixels: Sequence[int],
         field_of_view: Sequence[float],
         speed_of_sound: float,
-        **kwargs
+        **kwargs,
     ) -> np.ndarray:
         """
         Parameters

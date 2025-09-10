@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import argparse
@@ -8,7 +8,7 @@ import h5py
 
 def init_argparse():
     parser = argparse.ArgumentParser(description="Rename MSOT Scans.")
-    parser.add_argument('input_file', type=str, help="Input file name")
+    parser.add_argument("input_file", type=str, help="Input file name")
     return parser
 
 

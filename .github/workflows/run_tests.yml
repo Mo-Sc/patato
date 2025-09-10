@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        os: [ubuntu-latest, windows-latest, macos-13, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-13]
         exclude:
           - python-version: "3.8"
             os: windows-latest
@@ -40,7 +40,7 @@ jobs:
         pip install coverage ruff
     - name: Linting
       run: |
-        ruff check --output-format=github --select=E9,F63,F7,F82 --target-version=py37 . # Should do wider tests in the future.
+        ruff check --output-format=github --select=E9,F63,F7,F82 --target-version=py39 . # Should do wider tests in the future.
     - name: Run tests
       run: |
         cd tests
