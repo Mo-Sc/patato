@@ -12,6 +12,7 @@ run the following in the command line:
 Install PATATO: `pip install -e .` (requires build tools) OR `pip install patato` (doesn't require compiler tools).
 
 .. code-block:: console
+    
     cd tests
     python -m unittest
 

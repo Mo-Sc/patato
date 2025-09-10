@@ -1,5 +1,6 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
+
 
 class PreprocessingAttributeTags:
     HIGH_PASS_FILTER = "FILTER_HIGH_PASS"

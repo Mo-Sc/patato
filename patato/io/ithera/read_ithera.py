@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import glob
@@ -74,7 +74,7 @@ class iTheraMSOT(ReaderInterface):
             guid = r["GUID"]
             file = join(self.scan_folder, "RECONs", guid + ".bin")
             dtype = np.single
-            slicer = np.s_
+            slicer = np.s_[...]
             transpose = False
             if "FIELD-OF-VIEW" not in r and "Resolution" in r:
                 axis = [
@@ -82,7 +82,7 @@ class iTheraMSOT(ReaderInterface):
                     for x in range(3)
                 ]
                 dtype = np.double
-                slicer = slicer[:, :, :, :, ::-1]
+                slicer = np.s_[:, :, :, :, ::-1]
                 transpose = True
                 if not any(axis):
                     ns = [r["Resolution"], r["Resolution"], r["Resolution"]]
@@ -102,9 +102,7 @@ class iTheraMSOT(ReaderInterface):
                         self.nwavelengths,
                     )
                     + tuple(ns)
-                )[
-                    slicer
-                ]
+                )[slicer]
                 if transpose:
                     recon = np.swapaxes(recon, -1, -2)
             except ValueError:
@@ -175,9 +173,9 @@ class iTheraMSOT(ReaderInterface):
             attributes[ReconAttributeTags.X_FIELD_OF_VIEW] = field_of_view[0]
             attributes[ReconAttributeTags.Y_FIELD_OF_VIEW] = field_of_view[1]
             attributes[ReconAttributeTags.Z_FIELD_OF_VIEW] = field_of_view[2]
-            attributes[
-                ReconAttributeTags.RECONSTRUCTION_ALGORITHM
-            ] = "iThera Ultrasound"
+            attributes[ReconAttributeTags.RECONSTRUCTION_ALGORITHM] = (
+                "iThera Ultrasound"
+            )
 
             ultrasound_scans.append(
                 Ultrasound(

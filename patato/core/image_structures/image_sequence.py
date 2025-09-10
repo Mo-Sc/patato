@@ -1,6 +1,6 @@
 """Image sequence - abstract classes for processing datasets from PA data."""
 
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from __future__ import annotations

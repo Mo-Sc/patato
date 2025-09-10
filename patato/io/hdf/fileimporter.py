@@ -1,4 +1,4 @@
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 import copy
@@ -270,9 +270,9 @@ class ReaderInterface(metaclass=ABCMeta):
                 for dataset_type in all_datasets:
                     for reconstruction_type in all_datasets[dataset_type]:
                         if all_datasets[dataset_type][reconstruction_type]:
-                            all_datasets[dataset_type][
-                                reconstruction_type
-                            ] = all_datasets[dataset_type][reconstruction_type][s]
+                            all_datasets[dataset_type][reconstruction_type] = (
+                                all_datasets[dataset_type][reconstruction_type][s]
+                            )
         return all_datasets
 
     @abstractmethod

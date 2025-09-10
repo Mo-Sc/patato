@@ -7,7 +7,7 @@ All the functions, classes and modules contained in the PATATO package are detai
 For examples of how to use PATATO, please see the examples page.
 """
 
-#  Copyright (c) Thomas Else 2023.
+#  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
 from os import environ
