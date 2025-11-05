@@ -101,3 +101,6 @@ class IPASCInterface(ReaderInterface):
 
     def get_scan_comment(self):
         return ""
+
+    def close(self):
+        pass

@@ -82,6 +82,12 @@ class PAData:
         self.default_unmixing_type = ""
         self.external_roi_interface = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def is_clinical(self):
         return self.scan_reader.is_clinical()
 
@@ -683,9 +689,9 @@ class PAData:
         return cls(HDF5Reader(file), HDF5Writer(file))
 
     def save_hdf5(self, filename: str):
-        file = h5py.File(filename, "a")
-        writer = HDF5Writer(file)
-        return writer.save_file(self.scan_reader)
+        with h5py.File(filename, "a") as file:
+            with HDF5Writer(file) as writer:
+                writer.save_file(self)
 
     def save_to_hdf5(self, filename):
         return self.save_hdf5(filename)

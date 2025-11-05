@@ -177,3 +177,7 @@ class SimpaImporter(ReaderInterface):
 
     def _get_water_absorption(self):
         return np.zeros((len(self.wavelengths),)), 0
+
+    def close(self):
+        # self.file is a dict
+        pass
