@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 
 from ...core.image_structures.image_sequence import DataSequence
-from ...io.attribute_tags import HDF5Tags
+from ...io.attribute_tags import HDF5Tags, AxisNameTags
 
 if TYPE_CHECKING:
     pass
@@ -24,6 +24,7 @@ class PARawData(DataSequence, ABC):
         raise NotImplementedError()
 
     n_im_dim = 2
+    axis1_label_tag = AxisNameTags.WAVELENGTH
 
     def __init__(
         self,
@@ -61,11 +62,3 @@ class PARawData(DataSequence, ABC):
         -------
         """
         return True
-
-    @staticmethod
-    def get_ax1_label_meaning():
-        """
-        Returns
-        -------
-        """
-        return HDF5Tags.WAVELENGTH

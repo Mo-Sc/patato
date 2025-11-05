@@ -73,13 +73,11 @@ class ROI:
         )
         mask = mask.reshape(image.shape[-image.n_im_dim :])
         selection = slice(None, None)
-        if image.ax_0_exists():
-            selection = np.where(
-                self.ax0_index[None, :] == np.atleast_1d(image.ax_0_labels)[:, None]
-            )[0]
-            ret_image = image[selection]
-        else:
-            ret_image = image
+        selection = np.where(
+            self.ax0_index[None, :] == np.atleast_1d(image.ax_0_labels)[:, None]
+        )[0]
+        ret_image = image[selection]
+
         if not return_selection:
             return mask, ret_image
         else:

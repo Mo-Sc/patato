@@ -1,4 +1,5 @@
 """Pa_time_data. Defines the time-domain version of PARawData class."""
+
 #  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
@@ -8,10 +9,13 @@ from typing import Optional
 import numpy.typing as npt
 
 from ..image_structures.pa_raw_data import PARawData
+from ...io.attribute_tags import HDF5Tags, AxisNameTags
 
 
 class PATimeSeries(PARawData):
     """PATimeSeries is the data structure for time-domain raw PA data."""
+
+    axis1_label_tag = AxisNameTags.WAVELENGTH
 
     def __add__(self, other):
         new_data = xarray.concat([self.da, other.da], dim=other.da.dims[0])

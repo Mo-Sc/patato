@@ -279,7 +279,7 @@ class PAData:
         if type(dataset) == dict:
             raise NotImplementedError
         new_dataset = SingleImage(
-            operation(dataset.raw_data, axis=0)[0],
+            operation(dataset.raw_data, axis=0, keepdims=True),
             dataset.ax_1_labels,
             field_of_view=dataset.fov_3d,
             attributes=dataset.attributes,
@@ -467,7 +467,7 @@ class PAData:
         -------
         """
         so2 = self.get_scan_so2_frequency_components(fnum=fnum)
-        raw_data = np.sum(so2.raw_data, axis=0)[0]
+        raw_data = np.sum(so2.raw_data, axis=0, keepdims=True)
         so2_frequency = SingleImage(
             raw_data,
             so2.ax_1_labels,

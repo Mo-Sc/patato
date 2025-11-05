@@ -55,7 +55,7 @@ class TestHDF5Load(unittest.TestCase):
             self.pa_data.get_scan_reconstructions()[
                 ("test_recon", "0")
             ].get_ax1_label_meaning(),
-            "wavelengths",
+            "wavelength",
         )
 
     def test_slicing(self):
@@ -76,4 +76,3 @@ class TestHDF5Load(unittest.TestCase):
         with self.assertRaises(IndexError):
             print(data[1])
             print(data[-2])
-        #
