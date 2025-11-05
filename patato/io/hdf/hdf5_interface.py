@@ -103,11 +103,13 @@ class HDF5Writer(WriterInterface):
         pass
 
     def __init__(self, file):
-        WriterInterface.__init__(self)
-        if type(file) == h5py.File:
+        super().__init__()
+        if isinstance(file, h5py.File):
             self.file = file
+            self._own_file = False  # dont close if passed externally
         else:
             self.file = h5py.File(file, "a")
+            self._own_file = True
         self.overwrite = False  # TODO: implement this.
 
     def set_scan_datetime(self, datetime):
@@ -333,10 +335,8 @@ class HDF5Writer(WriterInterface):
                 del self.file[group]
 
     def close(self):
-        """
-        Close the hdf5 file.
-        """
-        self.file.close()
+        if self._own_file:
+            self.file.close()
 
 
 class HDF5Reader(ReaderInterface):
@@ -374,11 +374,13 @@ class HDF5Reader(ReaderInterface):
         return output
 
     def __init__(self, file):
-        ReaderInterface.__init__(self)
-        if type(file) == h5py.File:
+        super().__init__()
+        if isinstance(file, h5py.File):
             self.file = file
+            self._own_file = False  # dont close if passed externally
         else:
             self.file = h5py.File(file, "r")
+            self._own_file = True
 
     def get_scan_datetime(self):
         import dateutil.parser
@@ -466,10 +468,8 @@ class HDF5Reader(ReaderInterface):
         return self.file.get(HDF5Tags.SEGMENTATION, None)
 
     def close(self):
-        """
-        Close the hdf5 file.
-        """
-        self.file.close()
+        if self._own_file:
+            self.file.close()
 
 
 class PACFISHInterface(ReaderInterface):

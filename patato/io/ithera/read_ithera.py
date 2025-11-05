@@ -514,3 +514,6 @@ class iTheraMSOT(ReaderInterface):
             return ""
         except IndexError:
             return ""
+
+    def close(self):
+        pass

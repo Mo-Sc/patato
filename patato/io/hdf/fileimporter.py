@@ -48,9 +48,9 @@ class ReaderInterface(metaclass=ABCMeta):
     def save_to_hdf5(self, filename):
         from ..hdf.hdf5_interface import HDF5Writer
 
-        file = h5py.File(filename, "a")
-        writer = HDF5Writer(file)
-        return writer.save_file(self)
+        with h5py.File(filename, "a") as file:
+            with HDF5Writer(file) as writer:
+                writer.save_file(self)
 
     def __getitem__(self, item):
         s = copy.copy(self)
@@ -68,6 +68,12 @@ class ReaderInterface(metaclass=ABCMeta):
         self._sampling_frequency = None
         self._scan_geometry = None
         self.slices = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     @abstractmethod
     def _get_rois(self):
@@ -296,6 +302,10 @@ class ReaderInterface(metaclass=ABCMeta):
     def get_speed_of_sound(self):
         pass
 
+    @abstractmethod
+    def close(self):
+        pass
+
 
 class WriterInterface(metaclass=ABCMeta):
 
@@ -326,6 +336,12 @@ class WriterInterface(metaclass=ABCMeta):
                     self.add_image(recon)
         self.set_scan_comment(reader.get_scan_comment())
         self.set_sampling_frequency(reader.get_sampling_frequency())
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
     @abstractmethod
     def close(self):
@@ -439,4 +455,8 @@ class WriterInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def delete_dso2s(self) -> None:
+        pass
+
+    @abstractmethod
+    def close(self):
         pass
