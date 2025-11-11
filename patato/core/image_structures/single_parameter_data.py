@@ -4,20 +4,18 @@
 #  License: MIT
 
 from ..image_structures.image_sequence import ImageSequence
+from ...io.attribute_tags import AxisNameTags
 
 
 class SingleParameterData(ImageSequence):
     """SingleParameterData is the datastructure for images like sO2 and THb (one value per frame per pixel)."""
 
     save_output = True
+    axis1_label_tag = AxisNameTags.PARAM
 
     @staticmethod
     def is_single_instance():
         return False
-
-    @staticmethod
-    def get_ax1_label_meaning():
-        return "parameter"
 
     def get_hdf5_group_name(self):
         return self.parameters[0].item()

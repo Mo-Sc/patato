@@ -28,7 +28,7 @@ except ImportError:
 
 from dask.array.core import Array as DaskArray
 
-from ...io.attribute_tags import ReconAttributeTags
+from ...io.attribute_tags import ReconAttributeTags, AxisNameTags, HDF5Tags
 from ...processing.processing_algorithm import ProcessingResult
 from ...utils.plotting import type_cmaps
 from ...utils.rois.roi_type import ROI
@@ -72,6 +72,8 @@ class DataSequence(ProcessingResult, ABC):
     """
 
     n_im_dim = 3
+    axis0_label_tag = AxisNameTags.FRAME
+    axis1_label_tag = AxisNameTags.UNSPECIFIED
 
     @property
     def attributes(self):
@@ -250,9 +252,13 @@ class DataSequence(ProcessingResult, ABC):
     def cmap(self, x):
         self._cmap = x
 
-    @staticmethod
-    def get_ax1_label_meaning():
-        return ""
+    @classmethod
+    def get_ax0_label_meaning(cls):
+        return cls.axis0_label_tag
+
+    @classmethod
+    def get_ax1_label_meaning(cls):
+        return cls.axis1_label_tag
 
     @abstractmethod
     def get_hdf5_group_name(self):
@@ -292,19 +298,28 @@ class DataSequence(ProcessingResult, ABC):
 
     @property
     def ax_1_labels(self):
-        r = np.asarray(self.da.coords.get(self.get_ax1_label_meaning(), []))
-        if r.ndim == 0 and r.item() is None:
-            return r.item()
-        else:
-            return r
+        tag = self.get_ax1_label_meaning()
+        if not tag:
+            return np.asarray([])
+        coord = self.da.coords.get(tag, None)
+        if coord is None:
+            # Fallback to index if axis present but unlabeled
+            if tag in self.da.dims:
+                return np.arange(self.da.sizes[tag])
+            return np.asarray([])
+        return np.asarray(coord.values)
 
     @property
     def ax_0_labels(self):
-        return self.da.coords["frames"]
-
-    @staticmethod
-    def ax_0_exists():
-        return True
+        tag = self.get_ax0_label_meaning()
+        # If frames dim is present, return coord or index fallback
+        if tag in self.da.dims:
+            coord = self.da.coords.get(tag, None)
+            if coord is None:
+                return np.arange(self.da.sizes[tag])
+            return np.asarray(coord.values)
+        # No frames axis in this instance
+        return np.asarray([])
 
 
 class ImageSequence(DataSequence):
@@ -367,9 +382,11 @@ class ImageSequence(DataSequence):
             n_pixels = self.raw_data.shape[-3:]
             fov = np.array(
                 [
-                    self.attributes.get(ReconAttributeTags.OLD_FIELD_OF_VIEW)
-                    if x != 1
-                    else 1
+                    (
+                        self.attributes.get(ReconAttributeTags.OLD_FIELD_OF_VIEW)
+                        if x != 1
+                        else 1
+                    )
                     for x in n_pixels
                 ]
             )
@@ -389,7 +406,6 @@ class ImageSequence(DataSequence):
         if ax1_meaning is None:
             ax1_meaning = self.get_ax1_label_meaning()
 
-        # Quick bit of validation
         if ax_1_labels is not None and ax1_meaning is not None:
             if raw_data.shape[1] != len(ax_1_labels):
                 raise ValueError("Axis 1 labels must match raw data size.")
@@ -407,24 +423,22 @@ class ImageSequence(DataSequence):
             for (x, y), N in zip(field_of_view, raw_data.shape[-3:][::-1])
         ]
 
-        dims = ["frames", "z", "y", "x"]
+        dims = [self.get_ax0_label_meaning(), "z", "y", "x"]
         coords = {
-            "frames": np.arange(raw_data.shape[0]),
+            self.get_ax0_label_meaning(): np.arange(raw_data.shape[0]),
             "x": xs[0],
             "y": xs[1],
             "z": xs[2],
         }
 
-        if not self.ax_0_exists():
-            del coords["frames"]
-            dims = dims[1:]
-
         if ax1_meaning is not None:
             dims.insert(1, ax1_meaning)
             coords[ax1_meaning] = ax_1_labels
-        else:
-            # If there isn't really an axis 1 (e.g. for delta so2).
-            coords[ax1_meaning] = ax_1_labels[0]
+
+        # Ensure meanings are persisted in attrs
+        attributes = {} if attributes is None else dict(attributes)
+        attributes[HDF5Tags.AXIS0_MEANING] = self.get_ax0_label_meaning()
+        attributes[HDF5Tags.AXIS1_MEANING] = ax1_meaning
 
         DataSequence.__init__(
             self, raw_data, dims, coords, attributes, hdf5_sub_name, algorithm_id

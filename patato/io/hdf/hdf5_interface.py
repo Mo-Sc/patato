@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Sequence
-
+import ast
 import h5py
 import numpy as np
 from ...core.image_structures.image_structure_types import IMAGE_DATA_TYPES
@@ -14,6 +14,8 @@ from ...io.attribute_tags import (
     ROITags,
     UnmixingAttributeTags,
     ReconAttributeTags,
+    AxisNameTags,
+    _AXIS1_HDF5ATTR_MAP,
 )
 from ...io.hdf.fileimporter import WriterInterface, ReaderInterface
 from ...utils.rois.roi_type import ROI
@@ -23,6 +25,51 @@ import ast
 if TYPE_CHECKING:
     import numpy as np
 import dask.array as da
+
+
+def _coerce_attr_to_array(value):
+    # Accept numpy arrays, lists, tuples, bytes->str, or stringified Python lists
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple, np.ndarray)):
+        return np.asarray(value)
+    if isinstance(value, (bytes, bytearray)):
+        try:
+            value = value.decode("utf-8")
+        except Exception:
+            return None
+    if isinstance(value, str):
+        try:
+            parsed = ast.literal_eval(value)
+        except Exception:
+            return None
+        if isinstance(parsed, (list, tuple, np.ndarray)):
+            return np.asarray(parsed)
+        return None
+    return None
+
+
+def _resolve_axis1_labels(dataset, dataset_da, file, axis_tag):
+    # Known attr for labels
+    attr_name = _AXIS1_HDF5ATTR_MAP.get(axis_tag)
+    if attr_name:
+        labels = _coerce_attr_to_array(dataset.attrs.get(attr_name))
+        if labels is None and attr_name in file:
+            # legacy: labels stored at file root
+            labels = np.asarray(file.get(attr_name))
+        if labels is not None:
+            return labels
+
+    # Redundant/unspecified → indices
+    if axis_tag in (AxisNameTags.REDUNDANT, AxisNameTags.UNSPECIFIED):
+        return np.arange(dataset_da.shape[1])
+
+    # Legacy: infer name from path when size==1
+    if dataset_da.shape[1] == 1:
+        return np.asarray([dataset.name.split("/")[-3]])
+
+    # Fallback indices
+    return np.arange(dataset_da.shape[1])
 
 
 def renumber_group(dataset: h5py.Group) -> None:
@@ -40,7 +87,6 @@ def renumber_group(dataset: h5py.Group) -> None:
         dataset.move(old, new)
 
 
-# Might be useful to set enviro variable: HDF5_USE_FILE_LOCKING=FALSE
 def load_image_from_hdf5(cls, dataset, file):
     """
     Parameters
@@ -52,50 +98,34 @@ def load_image_from_hdf5(cls, dataset, file):
     Returns
     -------
     """
-    ax_1_meaning = cls.get_ax1_label_meaning()
     dataset_da = da.from_array(dataset, chunks=(1,) + dataset.shape[1:])
 
-    # This is very hacky, could do with improving this.
-    if ax_1_meaning == HDF5Tags.WAVELENGTH:
-        ax_1_labels = dataset.attrs.get(HDF5Tags.WAVELENGTH, file[HDF5Tags.WAVELENGTH])
-    elif ax_1_meaning == "SPECTRA":
-        ax_1_labels = dataset.attrs.get("SPECTRA", dataset.attrs.get("spectra"))
-        if type(ax_1_labels) == str:
-            ax_1_labels = ast.literal_eval(ax_1_labels)
-    elif ax_1_meaning == "":
-        # For ultrasound
-        ax_1_labels = np.arange(dataset_da.shape[1])
-    elif ax_1_meaning is None:
-        # For dso2 etc.
-        ax_1_labels = np.array([dataset.name.split("/")[-3]])
-    elif dataset_da.shape[1] == 1:
-        ax_1_labels = np.array([dataset.name.split("/")[-3]])
-    else:
-        ax_1_labels = np.arange(dataset_da.shape[1])
+    # Meanings: prefer stored, else class default
+    ax0_meaning = dataset.attrs.get(HDF5Tags.AXIS0_MEANING, AxisNameTags.FRAME)
+    ax1_meaning = dataset.attrs.get(HDF5Tags.AXIS1_MEANING, cls.get_ax1_label_meaning())
 
-    fov = [
-        dataset.attrs.get(fx, None)
-        for fx in [
-            ReconAttributeTags.X_FIELD_OF_VIEW,
-            ReconAttributeTags.Y_FIELD_OF_VIEW,
-            ReconAttributeTags.Z_FIELD_OF_VIEW,
-        ]
-    ]
+    # Axis-1 labels
+    ax_1_labels = _resolve_axis1_labels(dataset, dataset_da, file, ax1_meaning)
 
-    if all([x is None for x in fov]):
-        fov_x = dataset.attrs.get(ReconAttributeTags.OLD_FIELD_OF_VIEW, 1.0)
-        fov = [fov_x, fov_x, fov_x]
+    # Infer subgroup from HDF5 path: /<group>/<subgroup>/<dataset_name>
+    try:
+        hdf5_sub_name = dataset.parent.name.rsplit("/", 1)[-1]
+    except Exception:
+        hdf5_sub_name = None
 
-    new_cls = cls(
-        dataset_da,
-        ax_1_labels,
-        algorithm_id=dataset.attrs.get(UnmixingAttributeTags.SUFFIX, ""),
+    obj = cls(
+        raw_data=dataset_da,
+        ax_1_labels=ax_1_labels,
+        algorithm_id=dataset.attrs.get("algorithm_id", ""),
+        field_of_view=None,
         attributes=dict(dataset.attrs),
-        field_of_view=fov,
+        hdf5_sub_name=hdf5_sub_name,
     )
-    if not cls.is_single_instance():
-        new_cls.hdf5_sub_name = dataset.name.split("/")[-2]
-    return new_cls
+    # Ensure axis-0 meaning is present in attrs (some legacy files might miss it)
+    obj.da.attrs[HDF5Tags.AXIS0_MEANING] = ax0_meaning
+    obj.da.attrs[HDF5Tags.AXIS1_MEANING] = ax1_meaning
+
+    return obj
 
 
 class HDF5Writer(WriterInterface):
@@ -208,6 +238,16 @@ class HDF5Writer(WriterInterface):
                     if attr.dtype == "<U4":
                         attr = [bytes(a, "utf-8") for a in attr]
                 dataset.attrs[a] = attr
+
+        # save axis meanings
+        dataset.attrs[HDF5Tags.AXIS0_MEANING] = image_data.get_ax0_label_meaning()
+        dataset.attrs[HDF5Tags.AXIS1_MEANING] = image_data.get_ax1_label_meaning()
+
+        # save axis-1 labels when there is a well-known attribute for them
+        attr_key = _AXIS1_HDF5ATTR_MAP.get(image_data.get_ax1_label_meaning())
+        if attr_key:
+            labels = getattr(image_data, "ax_1_labels", [])
+            dataset.attrs[attr_key] = labels.tolist()
 
     def set_scan_comment(self, comment: str):
         self.file.attrs[HDF5Tags.SCAN_COMMENT] = comment

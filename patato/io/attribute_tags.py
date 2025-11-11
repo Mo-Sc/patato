@@ -93,3 +93,23 @@ class HDF5Tags:
     DELTA_ICG = "dicg"
     BASELINE_ICG = "baseline_icg"
     BASELINE_ICG_SIGMA = "baseline_icg_sigma"
+    AXIS0_MEANING = "axis0_meaning"
+    AXIS1_MEANING = "axis1_meaning"
+    WAVELENGTH = "wavelengths"
+    SPECTRA = "SPECTRA"
+
+
+class AxisNameTags:
+    WAVELENGTH = "wavelength"
+    SPECTRA = "spectra"
+    PARAM = "parameter"
+    FRAME = "frame"
+    REDUNDANT = "redundant"  # axis exists only for structural consistency
+    UNSPECIFIED = "unspecified"
+
+
+# Map axis-1 meaning to the HDF5 attribute key that stores its labels
+_AXIS1_HDF5ATTR_MAP = {
+    AxisNameTags.WAVELENGTH: HDF5Tags.WAVELENGTH,
+    AxisNameTags.SPECTRA: HDF5Tags.SPECTRA,
+}
