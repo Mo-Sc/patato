@@ -54,5 +54,9 @@ class TestITheraImport(unittest.TestCase):
         )
         self.assertTrue(np.all(new_t1.raw_data[()] == new_t2.raw_data[()]))
 
-        pa_1.close()
-        pa_2.close()
+        # test iannotation import
+        rois_1 = [roi.points for roi in pa_1.get_rois().values()]
+        rois_2 = [roi.points for roi in pa_2.get_rois().values()]
+        self.assertTrue(
+            all(np.allclose(roi1, roi2) for roi1, roi2 in zip(rois_1, rois_2))
+        )
