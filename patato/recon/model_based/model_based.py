@@ -12,9 +12,9 @@ import warnings
 from .cuda_implementation import get_model as get_model_gpu_single_c
 from .cuda_implementation_refraction import get_model as get_model_gpu_double_c
 from .numpy_implementation import get_model as get_model_cpu_single_c
-from .. import ReconstructionAlgorithm
+from ..reconstruction_algorithm import ReconstructionAlgorithm
 from ...core.image_structures.pa_time_data import PATimeSeries
-from ... import PAData
+from ...io.msot_data import PAData
 
 try:
     cuda_enabled = True

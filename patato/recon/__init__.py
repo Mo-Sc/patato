@@ -15,6 +15,7 @@ from .backprojection_reference import ReferenceBackprojection
 from .reconstruction_algorithm import ReconstructionAlgorithm
 from .numpy_backprojection.recon import SlowBackprojection
 from .dl_based.deepmb import DeepMBReconstruction
+from .model_based.model_based import ModelBasedReconstruction
 from ..io.msot_data import PAData
 
 RECONSTRUCTION_METHODS: Sequence[type(ReconstructionAlgorithm)] = [
@@ -22,6 +23,7 @@ RECONSTRUCTION_METHODS: Sequence[type(ReconstructionAlgorithm)] = [
     ReferenceBackprojection,
     SlowBackprojection,
     DeepMBReconstruction,
+    ModelBasedReconstruction,
 ]
 
 RECONSTRUCTION_NAMES = {x.get_algorithm_name(): x for x in RECONSTRUCTION_METHODS}
