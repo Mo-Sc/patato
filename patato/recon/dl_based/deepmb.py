@@ -1,6 +1,7 @@
 from typing import Sequence
+from pathlib import Path
 import numpy as np
-from patato.recon import ReconstructionAlgorithm
+from ..reconstruction_algorithm import ReconstructionAlgorithm
 
 
 class DeepMBReconstruction(ReconstructionAlgorithm):
@@ -18,14 +19,23 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
         self,
         model_path: str,
         use_gpu: bool = False,
-        channels_to_interpolate=(60, 148),
+        channels_to_interpolate: Sequence[int] = (),
         laser_energy: float = 1.0,
     ):
+        """
+        model_path: Path to the ONNX model file.
+        use_gpu: Whether to use GPU for inference (if available).
+        channels_to_interpolate: Tuple of channel indices that should be interpolated by the model.
+        laser_energy: Laser energy used during acquisition
+        """
 
         try:
             import onnxruntime as ort
         except ImportError as e:
             raise RuntimeError("DeepMB reconstruction requires onnxruntime") from e
+
+        if not Path(model_path).is_file():
+            raise FileNotFoundError(f"Model file not found at {model_path}")
 
         self.model_path = model_path
         self.laser_energy = float(laser_energy)
@@ -51,42 +61,71 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
     def reconstruct(
         self,
         time_series: np.ndarray,
-        fs: float,
-        geometry: np.ndarray,
-        n_pixels: Sequence[int],
-        field_of_view: Sequence[float],
-        speed_of_sound: float,
+        fs: float = None,
+        geometry: np.ndarray = None,
+        n_pixels: Sequence[int] = None,
+        field_of_view: Sequence[float] = None,
+        speed_of_sound: float = 1540.0,
         **kwargs,
     ) -> np.ndarray:
-        """
-        PATATO reconstruction entry point.
+        """DeepMB reconstruction entry point.
+
+        Note: DeepMB is designed for a specific geometry.
+        It will always assume that the input time series data corresponds to the geometry it was trained on
+        and the output will always be  (330, 400). The parameters are included only for API consistency.
+        If the input data does not match the geometry expected by the model, the reconstruction may fail or produce incorrect results.
+        time series can have any batch shape as long as the last two dimensions are (n_detectors, n_time_samples)
         """
 
-        # PATATO shape: (..., n_detectors, n_time_samples)
-        original_shape = time_series.shape[:-2]
-        frames = int(np.prod(original_shape))
+        if n_pixels is not None or field_of_view is not None or geometry is not None:
+            print(
+                "Warning: n_pixels, field_of_view and geometry parameters are not used in DeepMB reconstruction. They are included for API consistency but will be ignored."
+            )
 
-        signal = time_series.reshape((frames,) + time_series.shape[-2:])
+        # PATimeSeries to numpy array if not already done
+        if hasattr(time_series, "raw_data"):
+            time_series = time_series.raw_data
+
+        # (..., n_detectors, n_time_samples)
+        non_spatial_dims = time_series.shape[:-2]
+
+        # reshape if necessary
+        if len(non_spatial_dims) > 1:
+            # (frame, wavelength, n_detectors, n_time_samples) -> (frame * wavelength, n_detectors, n_time_samples)
+            frames = int(np.prod(non_spatial_dims))
+            signal = time_series.reshape((frames,) + time_series.shape[-2:])
+        elif len(non_spatial_dims) == 1:
+            signal = time_series
+        elif len(non_spatial_dims) == 0:
+            signal = time_series[np.newaxis, ...]
+        else:
+            raise ValueError(
+                f"Unsupported number of non-spatial dimensions: {len(non_spatial_dims)}"
+            )
 
         outputs = []
 
-        for i in range(frames):
-            # DeepMB expects (256, 2030)
-            sinogram = signal[i].T.astype(np.float32)
+        for sinogram in signal:
 
             inputs = {
-                "sinogram": sinogram,
+                "sinogram": sinogram.astype(np.float32),
                 "speed_of_sound": np.array(speed_of_sound, dtype=np.float32),
                 "laser_energy": np.array(self.laser_energy, dtype=np.float32),
                 "channels_for_interpolation": self.channels_for_interpolation,
             }
 
-            recon = self.session.run(None, inputs)[0]  # (330, 400)
+            recon = self.session.run(None, inputs)[0]
             outputs.append(recon)
 
-        # Stack frames and restore PATATO batch shape
+        # Stack frames and restore PATATO batch shape (frame, wavelength, x, y, z)
         output = np.stack(outputs, axis=0)
-        return output.reshape(original_shape + output.shape[1:])
+        output = output.reshape(non_spatial_dims + output.shape[1:])
+        # add y axis for consistency
+        output = np.expand_dims(output, axis=-2)
+        # rotate by 180 degrees around y axis to match orientation of other reconstructions
+        output = output[..., ::-1, :, ::-1]
+
+        return output
 
     @staticmethod
     def get_algorithm_name() -> str:
