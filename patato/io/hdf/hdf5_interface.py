@@ -454,7 +454,11 @@ class HDF5Reader(ReaderInterface):
         return self.file[HDF5Tags.Z_POSITION]
 
     def _get_run_numbers(self):
-        return self.file[HDF5Tags.RUN]
+        try:
+            return self.file[HDF5Tags.RUN]
+        except KeyError:
+            # RUN was not always imported (usually zero anyways), so return zeros.
+            return np.zeros(self._get_scan_times().shape)
 
     def _get_repetition_numbers(self):
         return self.file[HDF5Tags.REPETITION]
