@@ -95,7 +95,7 @@ class HDF5Tags:
     BASELINE_ICG_SIGMA = "baseline_icg_sigma"
     AXIS0_MEANING = "axis0_meaning"
     AXIS1_MEANING = "axis1_meaning"
-    WAVELENGTH = "wavelengths"
+    # WAVELENGTH = "wavelengths"
     SPECTRA = "SPECTRA"
 
 
