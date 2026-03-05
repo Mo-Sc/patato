@@ -4,9 +4,9 @@ from typing import Sequence
 
 import numpy as np
 
-from .. import ReconstructionAlgorithm
+from ..reconstruction_algorithm import ReconstructionAlgorithm
 import numpy.typing as npt
-from ... import PAData
+from ...io.msot_data import PAData
 from ...processing.preprocessing_algorithm import (
     TimeSeriesProcessingAlgorithm,
     PreprocessingAttributeTags,
