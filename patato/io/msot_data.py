@@ -682,16 +682,37 @@ class PAData:
 
     @classmethod
     def from_hdf5(cls, filename: Union[str, h5py.File], mode: str = "r"):
-        try:
-            file = h5py.File(filename, mode)
-        except TypeError:
+        """
+        Initalize reader and writer for an hdf5 file
+        if passed an open h5py file -> doesnt own it,
+        if passed a filename -> owns it and has to close it.
+
+        Parameters
+        ----------
+        filename : str or h5py.File
+
+        Returns
+        -------
+        PAData
+            PAData object with reader and writer for the hdf5 file.
+
+        """
+        if isinstance(filename, h5py.File):
             file = filename
-        return cls(HDF5Reader(file), HDF5Writer(file))
+            owns_file = False
+        else:
+            file = h5py.File(filename, mode)
+            owns_file = True
+        reader = HDF5Reader(file)
+        writer = HDF5Writer(file)
+        if owns_file:
+            reader._own_file = True
+        return cls(reader, writer)
 
     def save_hdf5(self, filename: str):
         with h5py.File(filename, "a") as file:
             with HDF5Writer(file) as writer:
-                writer.save_file(self)
+                writer.save_file(self.scan_reader)
 
     def save_to_hdf5(self, filename):
         return self.save_hdf5(filename)
