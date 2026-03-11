@@ -208,7 +208,7 @@ class iTheraMSOT(ReaderInterface):
 
         output = {}
         if rec_dict:
-            output["recons"] = rec_dict
+            output["reconstructions"] = rec_dict
 
         # Load ultrasound:
         ultrasound_scans = []
@@ -234,7 +234,7 @@ class iTheraMSOT(ReaderInterface):
                     image,
                     self._get_wavelengths(),
                     attributes=attributes,
-                    hdf5_sub_name="ultrasound",
+                    hdf5_sub_name="iThera Ultrasound",
                     field_of_view=field_of_view,
                 )
             )
@@ -247,7 +247,7 @@ class iTheraMSOT(ReaderInterface):
                 i = n_rec[r_name]
                 n_rec[r_name] += 1
                 us_dict[(r_name, str(i))] = r
-            output["ultrasound"] = us_dict
+            output["ultrasounds"] = us_dict
         return output
 
     def get_speed_of_sound(self):

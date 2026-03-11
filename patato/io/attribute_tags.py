@@ -50,6 +50,7 @@ class ROITags:
     ROI_POSITION = "position"
     RUN = "run"
     GENERATED_ROI = "generated"
+    ROI_TYPE = "napari_shape_type"
 
 
 class GCAttributeTags:

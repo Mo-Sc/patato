@@ -305,7 +305,7 @@ class HDF5Writer(WriterInterface):
         renumber_group(roi_dataset[old_name[0]])
 
     def delete_rois(self, name_position=None, number=None):
-        if "/" in name_position and number is None:
+        if name_position is not None and "/" in name_position and number is None:
             name, number = name_position.split("/")
             name_position = name
 
@@ -383,33 +383,53 @@ class HDF5Reader(ReaderInterface):
     def _get_rois(self):
         output = {}
         if HDF5Tags.REGIONS_OF_INTEREST in self.file:
+            # Try to set up frame-matching data.  Scans that were produced
+            # without z_position / repetition datasets (e.g. custom HDF5 files)
+            # will raise a KeyError here; in that case we fall back to matching
+            # all frames so the ROIs are still visible.
+            # This is mainly for compatibility with old files that were generated using the ithera-to-hdf5 converter
+            # TODO: decide on removal in future
+            try:
+                clinical = self.is_clinical()
+                frame_type = ROITags.Z_POSITION if not clinical else ROITags.REPETITION
+                match_frames = (
+                    self.get_scanner_z_position()
+                    if not clinical
+                    else self.get_repetition_numbers()
+                )
+                n_frames = match_frames.shape[0]
+            except Exception:
+                frame_type = None
+                match_frames = None
+                try:
+                    n_frames = self._get_pa_data()[0].shape[0]
+                except Exception:
+                    n_frames = 1
+
             for roi_name in self.file[HDF5Tags.REGIONS_OF_INTEREST]:
                 roi_group = self.file[HDF5Tags.REGIONS_OF_INTEREST][roi_name]
                 for roi_number in roi_group:
                     dataset = roi_group[roi_number]
-                    clinical = self.is_clinical()
-                    frame_type = (
-                        ROITags.Z_POSITION if not clinical else ROITags.REPETITION
-                    )
-                    match_frames = (
-                        self.get_scanner_z_position()
-                        if not clinical
-                        else self.get_repetition_numbers()
-                    )
-                    ax0_indices = np.where(
-                        np.isclose(
-                            match_frames[:, 0], dataset.attrs.get(frame_type, 1.0)
-                        )
-                    )[0]
+                    if match_frames is not None:
+                        ax0_indices = np.where(
+                            np.isclose(
+                                match_frames[:, 0],
+                                dataset.attrs.get(frame_type, 1.0),
+                            )
+                        )[0]
+                    else:
+                        # No frame-position data — assign ROI to all frames
+                        ax0_indices = np.arange(n_frames)
                     output[(roi_name, roi_number)] = ROI(
                         dataset[:],
-                        dataset.attrs[ROITags.Z_POSITION],
-                        dataset.attrs[ROITags.RUN],
+                        dataset.attrs.get(ROITags.Z_POSITION, 0.0),
+                        dataset.attrs.get(ROITags.RUN, 0.0),
                         dataset.attrs.get(ROITags.REPETITION, np.nan),
                         dataset.attrs[ROITags.ROI_NAME],
                         dataset.attrs[ROITags.ROI_POSITION],
                         dataset.attrs.get(ROITags.GENERATED_ROI, False),
                         ax0_indices,
+                        dataset.attrs[ROITags.ROI_TYPE],
                     )
         return output
 

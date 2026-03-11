@@ -40,6 +40,7 @@ class ROI:
             ROITags.ROI_NAME: self.roi_class,
             ROITags.ROI_POSITION: self.position,
             ROITags.GENERATED_ROI: self.generated,
+            ROITags.ROI_TYPE: self.shape_type,
         }
         return output
 
@@ -53,6 +54,7 @@ class ROI:
         position,
         generated=False,
         ax0_index=None,
+        shape_type: str = "polygon",
     ):
         self.points = points
         self.z = z_position
@@ -62,6 +64,73 @@ class ROI:
         self.position = position
         self.generated = generated
         self.ax0_index = np.array(ax0_index)
+        self.shape_type = shape_type
+
+    @classmethod
+    def from_polygon_mm(
+        cls,
+        verts_yx_mm: np.ndarray,
+        fov: tuple,
+        *,
+        z_position: float = 0.0,
+        run: float = 0.0,
+        repetition: float = 0.0,
+        ax0_index: np.ndarray = None,
+        roi_class: str = "user",
+        position: str = "0",
+        generated: bool = True,
+        shape_type: str = "polygon",
+    ) -> "ROI":
+        """Create a ROI from napari world-space vertices (y, x) in mm.
+
+        Converts from napari display coordinates — ``(y_mm, x_mm)``, top-left
+        origin, y flipped relative to PATATO — to PATATO physical coordinates
+        ``(x_m, y_m)``, centred at the image midpoint, in metres.
+
+        Parameters
+        ----------
+        verts_yx_mm : np.ndarray of shape (N, 2)
+            Polygon vertices in napari world coordinates ``(y_mm, x_mm)``.
+        fov : tuple
+            ``(fov_x_m, fov_y_m)`` field of view in metres, as returned by
+            ``ImageSequence.fov``.
+        z_position : float
+            Scanner z-position for this ROI (metres).  Used for frame matching
+            when the ROI is read back.
+        run : float
+            Acquisition run number.
+        repetition : float
+            Acquisition repetition number.
+        ax0_index : np.ndarray or None
+            Acquisition frame indices this ROI applies to.
+        roi_class : str
+            Semantic class label, e.g. ``"user"`` or ``"tumour"``.
+        position : str
+            Position label, e.g. ``"0"`` or ``"left"``.
+        generated : bool
+            Whether the ROI was auto-generated (``True`` for plugin-created ROIs).
+        """
+        fov_x_m, fov_y_m = float(fov[0]), float(fov[1])
+        arr = np.asarray(verts_yx_mm, dtype=float)
+        y_mm = arr[:, 0]
+        x_mm = arr[:, 1]
+        # napari (top-left, y↓, mm)  →  PATATO (centred, x→, y↑, metres)
+        patato_x = x_mm / 1000.0 - fov_x_m / 2.0
+        patato_y = fov_y_m / 2.0 - y_mm / 1000.0
+        points = np.stack([patato_x, patato_y], axis=1)  # (N, 2): (x, y)
+        if ax0_index is None:
+            ax0_index = np.array([])
+        return cls(
+            points=points,
+            z_position=z_position,
+            run=run,
+            repetition=repetition,
+            roi_class=roi_class,
+            position=position,
+            generated=generated,
+            ax0_index=np.asarray(ax0_index),
+            shape_type=shape_type,
+        )
 
     def to_mask_slice(self, image: "ImageSequence", return_selection=False):
         mask = generate_mask(
