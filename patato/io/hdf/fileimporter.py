@@ -316,25 +316,37 @@ class WriterInterface(metaclass=ABCMeta):
         if reader.get_rois() is not None:
             for roi in reader.get_rois().values():
                 self.add_roi(roi, generated=False)
+
+        # fallbacks for legacy hdf5 files that dont include all the metadata (i.e. form ithera-hdf5 importer)
+        try:
+            self.set_temperature(reader.get_temperature())
+            self.set_scanner_z_position(reader.get_scanner_z_position())
+            self.set_run_numbers(reader.get_run_numbers())
+            self.set_repetition_numbers(reader.get_repetition_numbers())
+            self.set_water_absorption(*reader.get_water_absorption())
+            self.set_scan_comment(reader.get_scan_comment())
+        except Exception as e:
+            print(
+                f"PATARI: Export failed to load some metadata for HDF5 export ({e}) This is most likely due to non-standard PATATO HDF5 file structure. Falling back to minimal export."
+            )
+
         self.set_scan_datetime(reader.get_scan_datetime())
         self.set_pa_data(reader.get_pa_data())
         self.set_scan_name(reader.get_scan_name())
-        self.set_temperature(reader.get_temperature())
         self.set_correction_factor(reader.get_correction_factor())
-        self.set_scanner_z_position(reader.get_scanner_z_position())
-        self.set_run_numbers(reader.get_run_numbers())
-        self.set_repetition_numbers(reader.get_repetition_numbers())
         self.set_scan_times(reader.get_scan_times())
         self.set_sensor_geometry(reader.get_sensor_geometry())
         self.set_impulse_response(reader.get_impulse_response())
         self.set_wavelengths(reader.get_wavelengths())
-        self.set_water_absorption(*reader.get_water_absorption())
         if reader.get_datasets() is not None:
             for _, image_group in reader.get_datasets().items():
-                for key in sorted(image_group, key=lambda x: int(x[1])):
+                # adapted to support non-numeric keys (dont sort)
+                for key in sorted(
+                    image_group,
+                    key=lambda x: int(x[1]) if str(x[1]).isdigit() else float("inf"),
+                ):
                     recon = image_group[key]
                     self.add_image(recon)
-        self.set_scan_comment(reader.get_scan_comment())
         self.set_sampling_frequency(reader.get_sampling_frequency())
 
     def __enter__(self):

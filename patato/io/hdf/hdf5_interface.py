@@ -475,7 +475,16 @@ class HDF5Reader(ReaderInterface):
         return self.file[HDF5Tags.Z_POSITION]
 
     def _get_run_numbers(self):
-        return self.file[HDF5Tags.RUN]
+        if HDF5Tags.RUN in self.file:
+            return self.file[HDF5Tags.RUN]
+
+        # Some legacy / externally produced HDF5 files do not store RUN.
+        # however this is needed in some places in PATATO
+        # therefore create dummy runs based on the number of frames and wavelengths in the
+        # timestamp matrix, filled with zeros
+        n_frames, n_wavelengths = self.file[HDF5Tags.TIMESTAMP].shape[:2]
+        runs = np.zeros((n_frames, n_wavelengths))
+        return runs
 
     def _get_repetition_numbers(self):
         return self.file[HDF5Tags.REPETITION]
