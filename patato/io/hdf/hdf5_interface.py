@@ -274,11 +274,12 @@ class HDF5Writer(WriterInterface):
         generated : bool, default False
         """
         roi_group = self.file.require_group(HDF5Tags.REGIONS_OF_INTEREST)
-        region_group = roi_group.require_group(
-            roi_data.attributes[ROITags.ROI_NAME]
-            + "_"
-            + roi_data.attributes[ROITags.ROI_POSITION]
+        roi_name = str(roi_data.attributes[ROITags.ROI_NAME])
+        roi_position = str(roi_data.attributes[ROITags.ROI_POSITION])
+        group_name = (
+            roi_name if roi_name.startswith("PATARI") else roi_name + "_" + roi_position
         )
+        region_group = roi_group.require_group(group_name)
         n = str(len(region_group))
         if type(roi_data.points) in [np.ndarray, list]:
             dataset = region_group.create_dataset(n, data=roi_data.points)
@@ -423,14 +424,14 @@ class HDF5Reader(ReaderInterface):
                         ax0_indices = np.arange(n_frames)
                     output[(roi_name, roi_number)] = ROI(
                         dataset[:],
-                        dataset.attrs.get(ROITags.Z_POSITION, 0.0),
-                        dataset.attrs.get(ROITags.RUN, 0.0),
+                        dataset.attrs.get(ROITags.Z_POSITION, np.nan),
+                        dataset.attrs.get(ROITags.RUN, np.nan),
                         dataset.attrs.get(ROITags.REPETITION, np.nan),
-                        dataset.attrs[ROITags.ROI_NAME],
-                        dataset.attrs[ROITags.ROI_POSITION],
+                        dataset.attrs.get(ROITags.ROI_NAME, "Unknown"),
+                        dataset.attrs.get(ROITags.ROI_POSITION, "Unknown"),
                         dataset.attrs.get(ROITags.GENERATED_ROI, False),
                         ax0_indices,
-                        dataset.attrs[ROITags.ROI_TYPE],
+                        dataset.attrs.get(ROITags.ROI_TYPE, "Unknown"),
                     )
         return output
 
