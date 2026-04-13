@@ -1,5 +1,6 @@
 #  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
+# Convention: attribute tags are uppercase. HDF5 groups or datasets are lowercase.
 
 
 class PreprocessingAttributeTags:
@@ -37,51 +38,51 @@ class UnmixingAttributeTags:
     SPECTRA = "SPECTRA"
     COMPUTE_SO2 = "SO2"
     SUFFIX = "SUFFIX"
-    HAEMOGLOBIN = "Hb"
-    OXYHAEMOGLOBIN = "HbO2"
-    MELANIN = "Melanin"
+    HAEMOGLOBIN = "HB"
+    OXYHAEMOGLOBIN = "HBO2"
+    MELANIN = "MELANIN"
     ICG = "ICG"
 
 
 class ROITags:
-    Z_POSITION = "z"
-    REPETITION = "repetition"
-    ROI_NAME = "class"
-    ROI_POSITION = "position"
-    RUN = "run"
-    GENERATED_ROI = "generated"
-    ROI_TYPE = "napari_shape_type"
+    Z_POSITION = "Z"
+    REPETITION = "REPETITION"
+    ROI_NAME = "CLASS"
+    ROI_POSITION = "POSITION"
+    RUN = "RUN"
+    GENERATED_ROI = "GENERATED"
+    ROI_TYPE = "SHAPE_TYPE"
 
 
 class GCAttributeTags:
-    STEPS = "steps"
-    BUFFER = "buffer"
-    SKIP_START = "skip_start"
+    STEPS = "STEPS"
+    BUFFER = "BUFFER"
+    SKIP_START = "SKIP_START"
 
 
 class HDF5Tags:
-    POWER = "POWER"
-    OVERALL_CORR = "CORRECTION_FACTOR"
-    RAW_DATA = "RAW_DATA"
+    POWER = "power"
+    OVERALL_CORR = "correction_factor"
+    RAW_DATA = "raw_data"
     RECONSTRUCTION = "reconstructions"
     UNMIXED = "unmixed"
     SO2 = "so2"
     THB = "thb"
     SPEED_OF_SOUND = "speedofsound"
     SAMPLING_FREQ = "fs"
-    SCAN_GEOMETRY = "GEOMETRY"
-    WAVELENGTH = "WAVELENGTHS"
-    IMPULSE_RESPONSE = "IMPULSE_RESPONSE"
-    Z_POSITION = "Z-POS"
-    REPETITION = "REPETITION"
+    SCAN_GEOMETRY = "geometry"
+    WAVELENGTH = "wavelengths"
+    IMPULSE_RESPONSE = "impulse_response"
+    Z_POSITION = "z-pos"
+    REPETITION = "repetition"
     REGIONS_OF_INTEREST = "rois"
-    RUN = "RUN"
+    RUN = "run"
     DELTA_SO2 = "dso2"
     BASELINE_SO2 = "baseline_so2"
     BASELINE_SO2_STANDARD_DEVIATION = "baseline_so2_sigma"
-    TIMESTAMP = "TIMESTAMP"
-    TEMPERATURE = "TEMPERATURE"
-    ULTRASOUND_FRAME_OFFSET = "ultraSound-frame-offset"
+    TIMESTAMP = "timestamp"
+    TEMPERATURE = "temperature"
+    ULTRASOUND_FRAME_OFFSET = "ultrasound-frame-offset"
     DATE = "date"
     ORIGINAL_NAME = "original_name"
     SCAN_COMMENT = "comment"
@@ -89,7 +90,6 @@ class HDF5Tags:
     WATER_PATHLENGTH = "pathlength"
     ULTRASOUND = "ultrasounds"
     ULTRASOUND_FIELD_OF_VIEW = "fov"
-    # SCAN_NAME = "name"
     SCAN_NAME = "scan_name"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"
@@ -97,17 +97,16 @@ class HDF5Tags:
     BASELINE_ICG_SIGMA = "baseline_icg_sigma"
     AXIS0_MEANING = "axis0_meaning"
     AXIS1_MEANING = "axis1_meaning"
-    # WAVELENGTH = "wavelengths"
-    SPECTRA = "SPECTRA"
+    SPECTRA = "spectra"
 
 
 class AxisNameTags:
-    WAVELENGTH = "wavelength"
-    SPECTRA = "spectra"
-    PARAM = "parameter"
-    FRAME = "frame"
-    REDUNDANT = "redundant"  # axis exists only for structural consistency
-    UNSPECIFIED = "unspecified"
+    WAVELENGTH = "WAVELENGTH"
+    SPECTRA = "SPECTRA"
+    PARAM = "PARAMETER"
+    FRAME = "FRAME"
+    REDUNDANT = "REDUNDANT"  # axis exists only for structural consistency
+    UNSPECIFIED = "UNSPECIFIED"  # no information available about axis meaning
 
 
 # Map axis-1 meaning to the HDF5 attribute key that stores its labels
