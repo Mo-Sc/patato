@@ -83,6 +83,9 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
     number_of_pixels_y = settings.get(ReconAttributeTags.Y_NUMBER_OF_PIXELS, 1)
     number_of_pixels_z = settings.get(ReconAttributeTags.Z_NUMBER_OF_PIXELS, 1)
 
+    # Speed of sound override from preset (falls back to the scan's recorded value if None).
+    speed_of_sound = settings.get(ReconAttributeTags.SPEED_OF_SOUND, None)
+
     # Number of pixels x and y
     reconstruction_algorithm = RECONSTRUCTION_NAMES[
         settings[ReconAttributeTags.RECONSTRUCTION_ALGORITHM]
@@ -104,6 +107,7 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
     step_2 = reconstruction_algorithm(
         (number_of_pixels_x, number_of_pixels_y, number_of_pixels_z),
         (field_of_view_x, field_of_view_y, field_of_view_z),
+        speed_of_sound=speed_of_sound,
         **recon_params,
     )
     step_1.add_child(step_2)
