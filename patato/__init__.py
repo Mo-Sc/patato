@@ -15,10 +15,12 @@ from .io.ithera.read_ithera import iTheraMSOT
 from .io.json.json_reading import read_reconstruction_preset, read_unmixing_preset
 from .io.msot_data import PAData
 from .io.simpa.read_simpa import SimpaImporter
-from .recon.backprojection_opencl import OpenCLBackprojection
-from .recon.backprojection_reference import ReferenceBackprojection
-
-from .recon.model_based.model_based import ModelBasedReconstruction
+from .recon import (
+    OpenCLBackprojection,
+    ReferenceBackprojection,
+    ModelBasedReconstruction,
+    DeepMBReconstruction,
+)
 
 from .processing.jax_preprocessing_algorithm import PreProcessor
 
@@ -58,6 +60,7 @@ __all_exports = [
     PreProcessor,
     Backprojection,
     OpenCLBackprojection,
+    DeepMBReconstruction,
     ModelBasedReconstruction,
     SpectralUnmixer,
     SO2Calculator,
