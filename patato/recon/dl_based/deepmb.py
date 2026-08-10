@@ -1,6 +1,7 @@
 from typing import Sequence
-from pathlib import Path
+
 import numpy as np
+
 from ..reconstruction_algorithm import ReconstructionAlgorithm
 
 
@@ -15,27 +16,39 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
     https://doi.org/10.1038/s42256-023-00724-3
     """
 
+    N_PIXELS = (400, 1, 330)
+
     def __init__(
         self,
+        n_pixels: Sequence[int],
+        field_of_view: Sequence[float],
+        speed_of_sound: float = 1540.0,
+        *,
         model_path: str,
         use_gpu: bool = False,
         channels_to_interpolate: Sequence[int] = (),
         laser_energy: float = 1.0,
     ):
         """
+        n_pixels: Native DeepMB output dimensions in (x, y, z) order.
+        field_of_view: Reconstruction field of view in (x, y, z) order.
+        speed_of_sound: Default speed of sound used by the reconstruction.
         model_path: Path to the ONNX model file.
         use_gpu: Whether to use GPU for inference (if available).
         channels_to_interpolate: Tuple of channel indices that should be interpolated by the model.
         laser_energy: Laser energy used during acquisition
         """
 
+        if tuple(n_pixels) != self.N_PIXELS:
+            raise ValueError(
+                f"DeepMB produces {self.N_PIXELS} pixels in (x, y, z) order. Received {tuple(n_pixels)}"
+            )
         try:
             import onnxruntime as ort
         except ImportError as e:
             raise RuntimeError("DeepMB reconstruction requires onnxruntime") from e
 
-        if not Path(model_path).is_file():
-            raise FileNotFoundError(f"Model file not found at {model_path}")
+        super().__init__(n_pixels, field_of_view, speed_of_sound)
 
         self.model_path = model_path
         self.laser_energy = float(laser_energy)
@@ -65,15 +78,14 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
         geometry: np.ndarray = None,
         n_pixels: Sequence[int] = None,
         field_of_view: Sequence[float] = None,
-        speed_of_sound: float = 1540.0,
+        speed_of_sound: float = None,
         **kwargs,
     ) -> np.ndarray:
         """DeepMB reconstruction entry point.
 
         Note: DeepMB is designed for a specific geometry.
         It will always assume that the input time series data corresponds to the geometry it was trained on
-        and the output will always be  (330, 400). The parameters are included only for API consistency.
-        If the input data does not match the geometry expected by the model, the reconstruction may fail or produce incorrect results.
+        and the output will always be (330, 400).
         time series can have any batch shape as long as the last two dimensions are (n_detectors, n_time_samples)
         """
 
@@ -84,7 +96,10 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
 
         # PATimeSeries to numpy array if not already done
         if hasattr(time_series, "raw_data"):
-            time_series = time_series.raw_data
+            time_series = np.asarray(time_series.raw_data)
+
+        if speed_of_sound is None:
+            speed_of_sound = self.speed_of_sound
 
         # (..., n_detectors, n_time_samples)
         non_spatial_dims = time_series.shape[:-2]
@@ -108,9 +123,9 @@ class DeepMBReconstruction(ReconstructionAlgorithm):
         for sinogram in signal:
 
             inputs = {
-                "sinogram": sinogram.astype(np.float32),
-                "speed_of_sound": np.array(speed_of_sound, dtype=np.float32),
-                "laser_energy": np.array(self.laser_energy, dtype=np.float32),
+                "sinogram": np.asarray(sinogram, dtype=np.float32),
+                "speed_of_sound": np.asarray(speed_of_sound, dtype=np.float32),
+                "laser_energy": np.asarray(self.laser_energy, dtype=np.float32),
                 "channels_for_interpolation": self.channels_for_interpolation,
             }
 
