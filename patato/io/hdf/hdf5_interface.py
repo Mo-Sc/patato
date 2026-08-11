@@ -145,6 +145,11 @@ class HDF5Writer(WriterInterface):
     def set_scan_datetime(self, datetime):
         self.file.attrs[HDF5Tags.DATE] = str(datetime)
 
+    def set_clinical_metadata(self, metadata):
+        if not isinstance(metadata, dict):
+            raise TypeError("Clinical metadata must be a dictionary")
+        self.file.attrs[HDF5Tags.CLINICAL_METADATA] = json.dumps(metadata)
+
     def set_pa_data(self, raw_data):
         if type(raw_data) == PATimeSeries:
             raw_data = raw_data.raw_data
@@ -456,6 +461,18 @@ class HDF5Reader(ReaderInterface):
                 return self.file.attrs[HDF5Tags.DATE]
         except KeyError:
             return np.nan
+
+    def get_clinical_metadata(self):
+        try:
+            value = self.file.attrs[HDF5Tags.CLINICAL_METADATA]
+            if isinstance(value, bytes):
+                value = value.decode()
+            metadata = json.loads(value)
+            if not isinstance(metadata, dict):
+                raise TypeError("Clinical metadata must be a dictionary")
+            return metadata
+        except KeyError:
+            return None
 
     def _get_pa_data(self):
         return self.file[HDF5Tags.RAW_DATA], dict(self.file[HDF5Tags.RAW_DATA].attrs)

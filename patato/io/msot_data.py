@@ -141,6 +141,9 @@ class PAData:
     def get_scan_datetime(self):
         return self.scan_reader.get_scan_datetime()
 
+    def get_clinical_metadata(self):
+        return self.scan_reader.get_clinical_metadata()
+
     def get_sampling_frequency(self) -> float:
         """
         Get the scan's sampling frequency.

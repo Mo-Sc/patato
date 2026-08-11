@@ -93,6 +93,7 @@ class HDF5Tags:
     ULTRASOUND = "ultrasounds"
     ULTRASOUND_FIELD_OF_VIEW = "fov"
     SCAN_NAME = "scan_name"
+    CLINICAL_METADATA = "clinical_metadata"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"
     BASELINE_ICG = "baseline_icg"
