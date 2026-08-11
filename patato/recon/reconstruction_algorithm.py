@@ -22,11 +22,16 @@ class ReconstructionAlgorithm(TimeSeriesProcessingAlgorithm, ABC):
         return x
 
     def __init__(
-        self, n_pixels: Sequence[int], field_of_view: Sequence[float], **kwargs
+        self,
+        n_pixels: Sequence[int],
+        field_of_view: Sequence[float],
+        speed_of_sound: Optional[float] = None,
+        **kwargs,
     ):
         super().__init__()
         self.n_pixels = n_pixels
         self.field_of_view = field_of_view
+        self.speed_of_sound = speed_of_sound
         self.custom_params = kwargs
         self._batch = True
         self.attributes = {}
@@ -58,6 +63,8 @@ class ReconstructionAlgorithm(TimeSeriesProcessingAlgorithm, ABC):
     ) -> Tuple[Reconstruction, dict, Optional[List[ProcessingResult]]]:
         from .. import PAT_MAXIMUM_BATCH_SIZE
 
+        if speed_of_sound is None:
+            speed_of_sound = self.speed_of_sound
         if speed_of_sound is None and pa_data is not None:
             speed_of_sound = pa_data.get_speed_of_sound()
 

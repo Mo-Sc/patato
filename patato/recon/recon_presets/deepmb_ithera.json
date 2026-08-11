@@ -1,0 +1,24 @@
+{
+  "FILTER_HIGH_PASS": null,
+  "FILTER_LOW_PASS": 7500000.0,
+  "IRF": true,
+  "HILBERT_TRANSFORM": true,
+  "ENVELOPE_DETECTION": false,
+  "INTERPOLATE_TIME": 1,
+  "INTERPOLATE_DETECTORS": 1,
+  "PREPROCESSING_ALGORITHM": "Standard Preprocessor",
+  "RECONSTRUCTION_FIELD_OF_VIEW_X": 0.04,
+  "RECONSTRUCTION_FIELD_OF_VIEW_Y": 0.0,
+  "RECONSTRUCTION_FIELD_OF_VIEW_Z": 0.033,
+  "RECONSTRUCTION_NX": 400,
+  "RECONSTRUCTION_NY": 1,
+  "RECONSTRUCTION_NZ": 330,
+  "RECONSTRUCTION_PARAMS": {
+    "model_path": "DeepMBv1.6.0_PType218_2024-10-15.onnx",
+    "use_gpu": true,
+    "channels_to_interpolate": [],
+    "laser_energy": 1.0
+  },
+  "RECONSTRUCTION_ALGORITHM": "DeepMB ONNX Reconstruction",
+  "RECONSTRUCTION_SPEED_OF_SOUND": 1525
+}

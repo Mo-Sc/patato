@@ -4,7 +4,7 @@
 from typing import Sequence
 
 import numpy as np
-from .. import ReconstructionAlgorithm
+from ..reconstruction_algorithm import ReconstructionAlgorithm
 
 # Add a loading bar
 from tqdm.auto import tqdm
