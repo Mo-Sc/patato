@@ -112,6 +112,9 @@ class ReaderInterface(metaclass=ABCMeta):
     def get_scan_datetime(self):
         pass
 
+    def get_clinical_metadata(self):
+        return None
+
     @property
     def raw_data(self):
         return self.get_pa_data()
@@ -331,6 +334,9 @@ class WriterInterface(metaclass=ABCMeta):
             )
 
         self.set_scan_datetime(reader.get_scan_datetime())
+        clinical_metadata = reader.get_clinical_metadata()
+        if clinical_metadata is not None:
+            self.set_clinical_metadata(clinical_metadata)
         self.set_pa_data(reader.get_pa_data())
         self.set_scan_name(reader.get_scan_name())
         self.set_correction_factor(reader.get_correction_factor())
@@ -365,6 +371,9 @@ class WriterInterface(metaclass=ABCMeta):
 
     @abstractmethod
     def set_scan_datetime(self, datetime):
+        pass
+
+    def set_clinical_metadata(self, metadata):
         pass
 
     @abstractmethod
