@@ -42,6 +42,12 @@ class ROI:
             ROITags.GENERATED_ROI: self.generated,
             ROITags.ROI_TYPE: self.shape_type,
         }
+        if self.ax0_index.size:
+            output[ROITags.AX0_INDEX] = self.ax0_index
+        if self.roi_group_id is not None:
+            output[ROITags.ROI_GROUP] = self.roi_group_id
+        if self.roi_id is not None:
+            output[ROITags.ROI_ID] = self.roi_id
         return output
 
     def __init__(
@@ -55,6 +61,8 @@ class ROI:
         generated=False,
         ax0_index=None,
         shape_type: str = "polygon",
+        roi_group_id=None,
+        roi_id=None,
     ):
         self.points = points
         self.z = z_position
@@ -63,8 +71,12 @@ class ROI:
         self.roi_class = roi_class
         self.position = position
         self.generated = generated
-        self.ax0_index = np.array(ax0_index)
+        self.ax0_index = np.asarray(
+            [] if ax0_index is None else ax0_index, dtype=int
+        ).reshape(-1) # Keep frame indices 1D integer arrays for indexing.
         self.shape_type = shape_type
+        self.roi_group_id = roi_group_id
+        self.roi_id = roi_id
 
     @classmethod
     def from_polygon_mm(
@@ -118,8 +130,6 @@ class ROI:
         patato_x = x_mm / 1000.0 - fov_x_m / 2.0
         patato_y = fov_y_m / 2.0 - y_mm / 1000.0
         points = np.stack([patato_x, patato_y], axis=1)  # (N, 2): (x, y)
-        if ax0_index is None:
-            ax0_index = np.array([])
         return cls(
             points=points,
             z_position=z_position,
@@ -128,7 +138,7 @@ class ROI:
             roi_class=roi_class,
             position=position,
             generated=generated,
-            ax0_index=np.asarray(ax0_index),
+            ax0_index=ax0_index,
             shape_type=shape_type,
         )
 

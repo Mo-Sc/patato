@@ -94,6 +94,9 @@ class ReaderInterface(metaclass=ABCMeta):
                         output[(roi.roi_class + "_" + roi.position, str(i))] = roi
         return output
 
+    def get_file_origin(self):
+        return None
+
     @abstractmethod
     def close(self):
         pass
