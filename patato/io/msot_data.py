@@ -11,7 +11,8 @@ import numpy as np
 import xarray
 
 from .hdf.fileimporter import ReaderInterface, WriterInterface
-from .hdf.hdf5_interface import HDF5Reader, HDF5Writer
+from .hdf.hdf5_interface import HDF5Writer
+from .hdf.hdf5_reader_factory import get_hdf5_reader
 from ..core.image_structures.pa_time_data import PATimeSeries
 from ..core.image_structures.single_image import SingleImage
 from ..core.image_structures.single_parameter_data import SingleParameterData
@@ -143,6 +144,9 @@ class PAData:
 
     def get_clinical_metadata(self):
         return self.scan_reader.get_clinical_metadata()
+
+    def get_file_origin(self):
+        return self.scan_reader.get_file_origin()
 
     def get_sampling_frequency(self) -> float:
         """
@@ -700,16 +704,8 @@ class PAData:
             PAData object with reader and writer for the hdf5 file.
 
         """
-        if isinstance(filename, h5py.File):
-            file = filename
-            owns_file = False
-        else:
-            file = h5py.File(filename, mode)
-            owns_file = True
-        reader = HDF5Reader(file)
-        writer = HDF5Writer(file)
-        if owns_file:
-            reader._own_file = True
+        reader = get_hdf5_reader(filename, mode)
+        writer = HDF5Writer(reader.file)
         return cls(reader, writer)
 
     def save_hdf5(self, filename: str):

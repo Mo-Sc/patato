@@ -54,6 +54,9 @@ class ROITags:
     RUN = "RUN"
     GENERATED_ROI = "GENERATED"
     ROI_TYPE = "SHAPE_TYPE"
+    AX0_INDEX = "AX0_INDEX"
+    ROI_GROUP = "ROI_GROUP"
+    ROI_ID = "ROI_ID"
 
 
 class GCAttributeTags:
@@ -94,6 +97,7 @@ class HDF5Tags:
     ULTRASOUND_FIELD_OF_VIEW = "fov"
     SCAN_NAME = "scan_name"
     CLINICAL_METADATA = "clinical_metadata"
+    FILE_ORIGIN = "file_origin"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"
     BASELINE_ICG = "baseline_icg"

@@ -81,8 +81,9 @@ class iTheraMSOT(ReaderInterface):
                 # roi name is roi type + index
                 roi_name = roi_class + "_" + position
 
-                # load additional information for patato ROI that is not stored in the iannotation file
-                frame = annotation["Sweeps"][0] - 1  # ilabs indices start at 1
+                # iThera stores sweep numbers as one-based frame indices.
+                frames = np.asarray(annotation["Sweeps"], dtype=int) - 1
+                frame = int(frames[0]) # use first frame here
                 wav = 0
                 z = self._get_scanner_z_position()[frame, wav]
                 run = self._get_run_numbers()[frame, wav]
@@ -99,6 +100,7 @@ class iTheraMSOT(ReaderInterface):
                     repetition=repetition,
                     roi_class=roi_class,
                     position=position,
+                    ax0_index=frames,
                 )
 
         return output
