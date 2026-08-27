@@ -111,7 +111,6 @@ class DataSequence(ProcessingResult, ABC):
             c.da = c.da[item]
         return c
 
-    # TODO: Implement a concatenate function
     def copy(self, cls=None):
         from copy import copy
 
@@ -331,18 +330,20 @@ class ImageSequence(DataSequence):
         raise NotImplementedError()
 
     def __add__(self, other):
-        # A really lazy implementation of concatenating these datasets. There is 100% a better way to do this..
-        new_data = xarray.concat([self.da, other.da], dim=other.da.dims[0])
-        output = ImageSequence(
-            new_data.values,
-            self.ax_1_labels,
-            self.algorithm_id,
-            self.fov_3d,
-            self.attributes,
-            self.hdf5_sub_name,
-            ax1_meaning=self.get_ax1_label_meaning(),
-        )
-        output.__class__ = self.__class__
+        return self.concat([self, other])
+
+    @staticmethod
+    def concat(sequences: "list[ImageSequence]") -> "ImageSequence":
+        """Join *sequences* along their leading (frame) axis into one sequence of the same type
+        """
+        if not sequences:
+            raise ValueError("concat() requires at least one sequence.")
+        if len(sequences) == 1:
+            return sequences[0]
+
+        template = sequences[0]
+        output = template.copy()
+        output.da = xarray.concat([s.da for s in sequences], dim=template.da.dims[0])
         return output
 
     @property
