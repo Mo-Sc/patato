@@ -184,7 +184,9 @@ class iTheraMSOT(ReaderInterface):
             pat_attributes["PREPROCESSING_ALGORITHM"] = (
                 "iThera " + attributes["SingalFilterType"]
             )
-            pat_attributes["speedofsound"] = attributes["TrimSpeedOfSound"]
+            pat_attributes["speedofsound"] = self._compute_speed_of_sound(
+                self._get_software_version(), attributes.get("TrimSpeedOfSound")
+            )
             pat_attributes["Notes"] = (
                 "iThera Reconstruction, imported by PATATO. Speed of sound is offset from water "
                 "sos at the given temperature. "
@@ -251,8 +253,64 @@ class iTheraMSOT(ReaderInterface):
             output["ultrasounds"] = us_dict
         return output
 
+    def _get_software_version(self):
+        scan_node = self.xml_tree.getElementsByTagName("ScanNode")[0]
+        return scan_node.getElementsByTagName("SW_Version")[0].firstChild.nodeValue
+
+    def _compute_speed_of_sound(self, software_version, trim_speed_of_sound):
+        version = tuple(int(part) for part in software_version.split("."))
+
+        # Depending on the version, speed of sound is either fixed or computed from the temperature
+        major, minor, patch, build = version
+        if major != 1:
+            uses_temperature = major > 1
+        elif minor == 1:
+            uses_temperature = (patch, build) > (0, 24)
+        elif minor == 2:
+            uses_temperature = (patch, build) > (0, 2)
+        else:
+            uses_temperature = minor > 2
+        if not uses_temperature:
+            # Older iThera software reconstructs with a fixed Prodigy speed.
+            preset = self.xml_tree.getElementsByTagName("OAMPreset")[-1]
+            return float(
+                preset.getElementsByTagName("ProdigySV")[-1].firstChild.nodeValue
+            )
+
+        speed_of_sound_base = float(
+            self.xml_tree.getElementsByTagName("SPEED-OF-SOUND-BASE")[
+                0
+            ].firstChild.nodeValue
+        )
+        # for scalar patato API, use the temperature from the first recorded frame.
+        temperature = self.scan_elements["TEMPERATURE"].flat[0]
+
+        # SOS is calculated from 5th-order polynomial fit of SoS vs. temperature (FrameTemperature),
+        # plus a fixed base value (SpeedOfSoundBase) and a user trim offset (TrimSpeedOfSound)
+        speed_of_sound = (
+            speed_of_sound_base
+            + float(trim_speed_of_sound)
+            + 1.402385e3
+            + 5.038813 * temperature
+            - 5.799136e-2 * temperature**2
+            + 3.287156e-4 * temperature**3
+            - 1.398845e-6 * temperature**4
+            + 2.787860e-9 * temperature**5
+        )
+        return float(round(speed_of_sound))
+
     def get_speed_of_sound(self):
-        return None
+        """
+        speed of sound that was used internally by the device for US reconstruction.
+        Should be used for PA reconstruction for alignment with US images.
+        """
+        scan_node = self.xml_tree.getElementsByTagName("ScanNode")[0]
+        trim_speed_of_sound = float(
+            scan_node.getElementsByTagName("TrimSpeedOfSound")[0].firstChild.nodeValue
+        )
+        return self._compute_speed_of_sound(
+            self._get_software_version(), trim_speed_of_sound
+        )
 
     def __init__(self, folder, scan_name=None):
         super().__init__()
