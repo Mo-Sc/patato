@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 
 
 class TestITheraImport(unittest.TestCase):
+    def test_speed_of_sound(self):
+        pa_1 = PAData(iTheraMSOT("test_data_ithera/Scan_9"))
+        self.assertEqual(pa_1.get_speed_of_sound(), 1469.0)
+
     def test_overall_processing(self):
         # matplotlib.use('Agg')
         pa_1 = PAData(iTheraMSOT("test_data_ithera/Scan_9"))
