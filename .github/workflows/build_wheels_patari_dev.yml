@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - patari
+      - patari-ipasc
   release:
     types:
       - published
