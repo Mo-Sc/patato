@@ -1,54 +1,36 @@
+#  Copyright (c) Thomas Else 2023-25.
+#  License: MIT
+
 import numpy as np
 import pacfish as pf
-from pacfish import MetaDatum
+
+from .metadata_mapping import build_ipasc_metadata
 
 
-class PatHDF5AdapterToIPASCFormat(pf.BaseAdapter):
-    def generate_device_meta_data(self) -> dict:
-        return {}
+class PatatoAdapterToIPASCFormat(pf.BaseAdapter):
+    """Converts any PATATO reader into the IPASC representation.
 
-    def __init__(self, hdf5_file):
-        self.hdf5_file = hdf5_file
-        super(PatHDF5AdapterToIPASCFormat, self).__init__()
+    Metadata come from the shared mapping, so a native IPASC export and the IPASC metadata
+    embedded in a PATATO HDF5 file always agree.
+    """
+
+    def __init__(self, reader):
+        self.reader = reader
+        self.acquisition, self.device = build_ipasc_metadata(reader)
+        super().__init__()
+        # pacfish only queries the standard tag list, so anything left over is a custom
+        # parameter and has to be added by hand.
+        for key, value in self.acquisition.items():
+            if key not in self.pa_data.meta_data_acquisition:
+                self.add_custom_meta_datum_field(key, value)
 
     def generate_binary_data(self) -> np.ndarray:
-        # iThera definition: [frames, wavelengths, detectors, time_series]
-        # IPASC definition: [detectors, time_series, wavelength, frames]
-        time_series = self.hdf5_file["raw_data"]
-        time_series = np.swapaxes(
-            time_series, 2, 0
-        )  # [detectors, wavelengths, frames, time_series]
-        time_series = np.swapaxes(
-            time_series, 3, 1
-        )  # [detectors, time_series, frames, wavelength]
-        time_series = np.swapaxes(
-            time_series, 3, 2
-        )  # [detectors, time_series, wavelength, frames]
-        return time_series
+        # [frames, wavelengths, detectors, samples] -> [detectors, samples, wavelengths, frames]
+        time_series = np.asarray(self.reader.get_pa_data().raw_data)
+        return np.transpose(time_series, (2, 3, 1, 0))
 
-    def generate_meta_data_device(self) -> dict:
-        device_metadata_creator = pf.DeviceMetaDataCreator()
-        for array_element in np.asarray(self.hdf5_file["GEOMETRY"]):
-            det_element = pf.DetectionElementCreator()
-            det_element.set_detector_position(array_element)
-            device_metadata_creator.add_detection_element(det_element.get_dictionary())
-        return device_metadata_creator.finalize_device_meta_data()
+    def generate_device_meta_data(self) -> dict:
+        return self.device
 
-    def set_metadata_value(self, metadata_tag: MetaDatum) -> object:
-        if metadata_tag == pf.MetadataAcquisitionTags.PULSE_ENERGY:
-            return np.asarray(self.hdf5_file["OverallCorrectionFactor"])
-        if metadata_tag == pf.MetadataAcquisitionTags.TEMPERATURE_CONTROL:
-            return np.asarray(self.hdf5_file["TEMPERATURE"])
-        if metadata_tag == pf.MetadataAcquisitionTags.MEASUREMENT_SPATIAL_POSES:
-            # TODO convert each element into [0, POS, 0, 0, 0, 0]
-            orig_shape = self.hdf5_file["Z-POS"]
-            poses = []
-            for y_pos in np.asarray(self.hdf5_file["Z-POS"]).reshape((-1,)):
-                poses.append([0, y_pos, 0, 0, 0])
-
-            return np.asarray(poses).reshape((orig_shape[0], orig_shape[1], -1))
-        if metadata_tag == pf.MetadataAcquisitionTags.MEASUREMENT_TIMESTAMPS:
-            return np.asarray(self.hdf5_file["timestamp"])
-        if metadata_tag == pf.MetadataAcquisitionTags.ACQUISITION_WAVELENGTHS:
-            return np.asarray(self.hdf5_file["wavelengths"])
-        return None
+    def set_metadata_value(self, metadatum: pf.MetaDatum) -> object:
+        return self.acquisition.get(metadatum.tag)

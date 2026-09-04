@@ -1,18 +1,36 @@
 #  Copyright (c) Thomas Else 2023-25.
 #  License: MIT
 
-import h5py
-import pacfish as pf
-
-from .ipasc_export import PatHDF5AdapterToIPASCFormat
+from .read_ipasc import IPASCInterface
 
 
-def export_to_ipasc(path_to_hdf5, out_path=None):
+def write_ipasc(reader, out_path: str) -> str:
+    """Write an open PATATO reader out as a native IPASC raw time series file.
+
+    Only the raw time series and its acquisition metadata are transferred; reconstructions,
+    ultrasound and annotations have no representation in the IPASC format, which is scoped to
+    raw data by design. PATATO's own HDF5 export keeps those.
+    """
+    import pacfish as pf
+
+    from .ipasc_export import PatatoAdapterToIPASCFormat
+
+    pf.write_data(out_path, PatatoAdapterToIPASCFormat(reader).generate_pa_data())
+    return out_path
+
+
+def export_to_ipasc(hdf5_path, out_path=None) -> str:
+    """Convert a PATATO HDF5 scan into a native IPASC raw time series file."""
+    from pathlib import Path
+
+    from ..hdf.hdf5_reader_factory import get_hdf5_reader
+
     if out_path is None:
-        out_path = path_to_hdf5.replace(".hdf5", "_ipasc.hdf5")
+        source = Path(hdf5_path)
+        out_path = str(source.with_name(f"{source.stem}_ipasc.hdf5"))
 
-    hdf5_file = h5py.File(path_to_hdf5, "r")
-    converter = PatHDF5AdapterToIPASCFormat(hdf5_file=hdf5_file)
-    print(hdf5_file.keys())
-    pa_data = converter.generate_pa_data()
-    pf.write_data(out_path, pa_data)
+    reader = get_hdf5_reader(str(hdf5_path))
+    try:
+        return write_ipasc(reader, out_path)
+    finally:
+        reader.close()

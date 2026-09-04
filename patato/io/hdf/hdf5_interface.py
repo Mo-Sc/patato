@@ -14,6 +14,7 @@ from ...io.attribute_tags import (
     ROITags,
     AxisNameTags,
     _AXIS1_HDF5ATTR_MAP,
+    IPASCTags,
 )
 from ...io.hdf.fileimporter import WriterInterface, ReaderInterface
 from ...utils.rois.roi_type import ROI
@@ -148,6 +149,9 @@ class HDF5Writer(WriterInterface):
             raise TypeError("Clinical metadata must be a dictionary")
         self.file.attrs[HDF5Tags.CLINICAL_METADATA] = json.dumps(metadata)
 
+    def set_device_info(self, device_info: dict):
+        self.file.attrs[HDF5Tags.DEVICE_INFO] = json.dumps(device_info)
+
     def set_pa_data(self, raw_data):
         if type(raw_data) == PATimeSeries:
             raw_data = raw_data.raw_data
@@ -266,6 +270,30 @@ class HDF5Writer(WriterInterface):
     def set_speed_of_sound(self, c: float):
         self.file[HDF5Tags.RAW_DATA].attrs[HDF5Tags.SPEED_OF_SOUND] = c
         self.file.attrs[HDF5Tags.SPEED_OF_SOUND] = c
+
+    def set_ipasc_metadata(self, acquisition: dict, device: dict):
+        """
+        Write the IPASC metadata under an `ipasc` group, in the layout IPASC defines.
+
+        The group is additive, so the PATATO payload is untouched. It is nested rather than
+        written at the root because the payload itself is not in the IPASC layout, and a file
+        with a root level `meta_data` group would look like an IPASC container.
+        """
+
+        def write_group(group, data):
+            for key, value in data.items():
+                if isinstance(value, dict):
+                    write_group(group.require_group(key), value)
+                elif isinstance(value, np.ndarray):
+                    group.create_dataset(key, data=value)
+                else:
+                    group[key] = value
+
+        if IPASCTags.GROUP in self.file:
+            del self.file[IPASCTags.GROUP]
+        ipasc = self.file.require_group(IPASCTags.GROUP)
+        write_group(ipasc.require_group(IPASCTags.META_DATA), acquisition)
+        write_group(ipasc.require_group(IPASCTags.META_DATA_DEVICE), device)
 
     def add_roi(self, roi_data: ROI, generated: bool = False):
         """
@@ -455,6 +483,14 @@ class HDF5Reader(ReaderInterface):
             return metadata
         except KeyError:
             return None
+
+    def get_device_info(self) -> dict:
+        value = self.file.attrs.get(HDF5Tags.DEVICE_INFO)
+        if value is None:
+            return {}
+        if isinstance(value, bytes):
+            value = value.decode()
+        return json.loads(value)
 
     def _get_pa_data(self):
         return self.file[HDF5Tags.RAW_DATA], dict(self.file[HDF5Tags.RAW_DATA].attrs)

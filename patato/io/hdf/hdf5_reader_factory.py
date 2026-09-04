@@ -5,10 +5,11 @@ import logging
 
 import h5py
 
-from ...io.attribute_tags import HDF5Tags
+from ...io.attribute_tags import HDF5Tags, IPASCTags
 from ...io.attribute_tags_orig import HDF5Tags as LegacyHDF5Tags
 from .hdf5_interface import HDF5Reader
 from .hdf5_interface_legacy import HDF5ReaderLegacy
+from ..ipasc.read_ipasc import IPASCInterface
 
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,16 @@ _LEGACY_SIGNATURES = {
     LegacyHDF5Tags.RECONSTRUCTION,
     LegacyHDF5Tags.ULTRASOUND,
 }
+
+
+def is_ipasc_hdf5(file) -> bool:
+    """
+    Check if a given HDF5 file follows the IPASC consensus format.
+
+    The IPASC format stores the raw time series under a fixed dataset name
+    alongside an acquisition metadata group, neither of which PATATO uses.
+    """
+    return IPASCTags.BINARY_DATA in file and IPASCTags.META_DATA in file
 
 
 def is_legacy_hdf5(file) -> bool:
@@ -58,6 +69,13 @@ def get_hdf5_reader(file, mode="r"):
     owns_file = not isinstance(file, h5py.File)
     if owns_file:
         file = h5py.File(file, mode)
+
+    if is_ipasc_hdf5(file):
+        # pacfish opens the file itself, so hand over the path rather than the handle.
+        filename = file.filename
+        if owns_file:
+            file.close()
+        return IPASCInterface(filename)
 
     if is_legacy_hdf5(file):
         logger.warning(

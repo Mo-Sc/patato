@@ -21,6 +21,7 @@ dependencies = [
     "jax[cpu]>=0.4.13",
     "customtkinter>=5.2.2",
     "tqdm>=4.67.1",
+    "pacfish>=0.4.4",
 ]
 
 authors = [

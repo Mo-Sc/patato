@@ -97,6 +97,7 @@ class HDF5Tags:
     ULTRASOUND_FIELD_OF_VIEW = "fov"
     SCAN_NAME = "scan_name"
     CLINICAL_METADATA = "clinical_metadata"
+    DEVICE_INFO = "device_info"
     FILE_ORIGIN = "file_origin"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"
@@ -105,6 +106,22 @@ class HDF5Tags:
     AXIS0_MEANING = "axis0_meaning"
     AXIS1_MEANING = "axis1_meaning"
     SPECTRA = "spectra"
+
+
+class IPASCTags:
+    """Group and dataset names of the IPASC consensus format."""
+
+    BINARY_DATA = "binary_time_series_data"
+    META_DATA = "meta_data"
+    META_DATA_DEVICE = "meta_data_device"
+    # IPASC allows custom parameters. PATATO's per-acquisition correction factor has no
+    # standard equivalent (`overall_gain` is a single value), but reconstruction needs it.
+    CORRECTION_FACTOR = "patato_overall_correction_factor"
+    # Vendor recorded hardware identifiers, kept verbatim alongside the derived UUID.
+    DEVICE_INFO = "patato_device_info"
+    # Group that holds the IPASC metadata inside a PATATO file, where the payload is not in
+    # the IPASC layout and the blocks must not sit at the root.
+    GROUP = "ipasc"
 
 
 class AxisNameTags:

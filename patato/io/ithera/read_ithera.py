@@ -564,6 +564,26 @@ class iTheraMSOT(ReaderInterface):
         else:
             return None, {}
 
+    # Identifiers the iThera software writes into the scan node.
+    DEVICE_INFO_TAGS = (
+        "DeviceSN",
+        "TransducerSN",
+        "LaserSN",
+        "DAQ_MACaddress",
+        "SW_Version",
+    )
+
+    def get_device_info(self) -> dict:
+        scan_node = self.xml_tree.getElementsByTagName("ScanNode")[0]
+        info = {}
+        for tag in self.DEVICE_INFO_TAGS:
+            nodes = scan_node.getElementsByTagName(tag)
+            if nodes and nodes[0].firstChild:
+                value = nodes[0].firstChild.nodeValue.strip()
+                if value:
+                    info[tag] = value
+        return info
+
     def get_scan_name(self):
         return (
             self.xml_tree.getElementsByTagName("ScanNode")[0]

@@ -118,6 +118,14 @@ class ReaderInterface(metaclass=ABCMeta):
     def get_clinical_metadata(self):
         return None
 
+    def get_device_info(self) -> dict:
+        """Identifiers the scanner recorded about itself, as written by the vendor.
+
+        Values are passed through verbatim; formats differ between manufacturers and none
+        of them is interpreted here.
+        """
+        return {}
+
     @property
     def raw_data(self):
         return self.get_pa_data()
@@ -323,20 +331,21 @@ class WriterInterface(metaclass=ABCMeta):
             for roi in reader.get_rois().values():
                 self.add_roi(roi, generated=False)
 
-        # fallbacks for legacy hdf5 files that dont include all the metadata (i.e. form ithera-hdf5 importer)
-        try:
-            self.set_temperature(reader.get_temperature())
-            self.set_scanner_z_position(reader.get_scanner_z_position())
-            self.set_run_numbers(reader.get_run_numbers())
-            self.set_repetition_numbers(reader.get_repetition_numbers())
-            self.set_water_absorption(*reader.get_water_absorption())
-            self.set_scan_comment(reader.get_scan_comment())
-        except Exception as e:
-            print(
-                f"PATARI: Export failed to load some metadata for HDF5 export ({e}) This is most likely due to non-standard PATATO HDF5 file structure. Falling back to minimal export."
-            )
+        self.set_temperature(reader.get_temperature())
+        self.set_scanner_z_position(reader.get_scanner_z_position())
+        self.set_run_numbers(reader.get_run_numbers())
+        self.set_repetition_numbers(reader.get_repetition_numbers())
+        self.set_scan_comment(reader.get_scan_comment())
+
+        # Water absorption is only recorded by scanners that couple through water.
+        water_absorption, pathlength = reader.get_water_absorption()
+        if water_absorption is not None:
+            self.set_water_absorption(water_absorption, pathlength)
 
         self.set_scan_datetime(reader.get_scan_datetime())
+        device_info = reader.get_device_info()
+        if device_info:
+            self.set_device_info(device_info)
         clinical_metadata = reader.get_clinical_metadata()
         if clinical_metadata is not None:
             self.set_clinical_metadata(clinical_metadata)
@@ -345,8 +354,16 @@ class WriterInterface(metaclass=ABCMeta):
         self.set_correction_factor(reader.get_correction_factor())
         self.set_scan_times(reader.get_scan_times())
         self.set_sensor_geometry(reader.get_sensor_geometry())
-        self.set_impulse_response(reader.get_impulse_response())
         self.set_wavelengths(reader.get_wavelengths())
+
+        # The IPASC format defines no time domain impulse response, and not every scanner
+        # reports a speed of sound.
+        impulse_response = reader.get_impulse_response()
+        if impulse_response is not None:
+            self.set_impulse_response(impulse_response)
+        speed_of_sound = reader.get_speed_of_sound()
+        if speed_of_sound is not None:
+            self.set_speed_of_sound(speed_of_sound)
         if reader.get_datasets() is not None:
             for _, image_group in reader.get_datasets().items():
                 # adapted to support non-numeric keys (dont sort)
@@ -357,6 +374,16 @@ class WriterInterface(metaclass=ABCMeta):
                     recon = image_group[key]
                     self.add_image(recon)
         self.set_sampling_frequency(reader.get_sampling_frequency())
+        # Imported here because the ipasc package imports this module.
+        from ..ipasc.metadata_mapping import build_ipasc_metadata
+
+        self.set_ipasc_metadata(*build_ipasc_metadata(reader))
+
+    def set_ipasc_metadata(self, acquisition: dict, device: dict):
+        """Writers that cannot represent nested metadata groups ignore them."""
+
+    def set_device_info(self, device_info: dict):
+        """Writers that cannot represent a metadata dictionary ignore it."""
 
     def __enter__(self):
         return self

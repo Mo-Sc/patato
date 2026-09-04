@@ -705,7 +705,8 @@ class PAData:
 
         """
         reader = get_hdf5_reader(filename, mode)
-        writer = HDF5Writer(reader.file)
+        # IPASC files are read through pacfish and have no PATATO writer backing them.
+        writer = HDF5Writer(reader.file) if hasattr(reader, "file") else None
         return cls(reader, writer)
 
     def save_hdf5(self, filename: str):
