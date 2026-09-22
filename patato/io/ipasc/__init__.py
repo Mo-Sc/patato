@@ -7,9 +7,8 @@ from .read_ipasc import IPASCInterface
 def write_ipasc(reader, out_path: str) -> str:
     """Write an open PATATO reader out as a native IPASC raw time series file.
 
-    Only the raw time series and its acquisition metadata are transferred; reconstructions,
-    ultrasound and annotations have no representation in the IPASC format, which is scoped to
-    raw data by design. PATATO's own HDF5 export keeps those.
+    Only the raw time series and its acquisition metadata are transferred. Reconstructions,
+    ultrasound and annotations have no representation in the IPASC format.
     """
     import pacfish as pf
 

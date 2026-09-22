@@ -1,6 +1,3 @@
-#  Copyright (c) Thomas Else 2023-25.
-#  License: MIT
-
 import numpy as np
 import pacfish as pf
 

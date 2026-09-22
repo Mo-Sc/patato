@@ -118,11 +118,16 @@ class ReaderInterface(metaclass=ABCMeta):
     def get_clinical_metadata(self):
         return None
 
+    def get_device_uuid(self):
+        """A device UUID the source file
+        """
+        return None
+
     def get_device_info(self) -> dict:
         """Identifiers the scanner recorded about itself, as written by the vendor.
 
         Values are passed through verbatim; formats differ between manufacturers and none
-        of them is interpreted here.
+        of them is interpreted here. Empty when the format records nothing.
         """
         return {}
 
@@ -380,10 +385,10 @@ class WriterInterface(metaclass=ABCMeta):
         self.set_ipasc_metadata(*build_ipasc_metadata(reader))
 
     def set_ipasc_metadata(self, acquisition: dict, device: dict):
-        """Writers that cannot represent nested metadata groups ignore them."""
+        """Sets the IPASC metadata for acquisition and device."""
 
     def set_device_info(self, device_info: dict):
-        """Writers that cannot represent a metadata dictionary ignore it."""
+        """Sets the device information as recorded by the scanner vendor."""
 
     def __enter__(self):
         return self

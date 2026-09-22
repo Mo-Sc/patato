@@ -30,10 +30,10 @@ _LEGACY_SIGNATURES = {
 
 def is_ipasc_hdf5(file) -> bool:
     """
-    Check if a given HDF5 file follows the IPASC consensus format.
+    Check if a given HDF5 file follows the IPASC format.
 
     The IPASC format stores the raw time series under a fixed dataset name
-    alongside an acquisition metadata group, neither of which PATATO uses.
+    alongside an acquisition metadata group.
     """
     return IPASCTags.BINARY_DATA in file and IPASCTags.META_DATA in file
 

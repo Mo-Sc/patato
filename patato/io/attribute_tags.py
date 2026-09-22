@@ -110,18 +110,14 @@ class HDF5Tags:
 
 
 class IPASCTags:
-    """Group and dataset names of the IPASC consensus format."""
+    """Group and dataset names of the IPASC format."""
 
     BINARY_DATA = "binary_time_series_data"
     META_DATA = "meta_data"
     META_DATA_DEVICE = "meta_data_device"
-    # IPASC allows custom parameters. PATATO's per-acquisition correction factor has no
-    # standard equivalent (`overall_gain` is a single value), but reconstruction needs it.
     CORRECTION_FACTOR = "patato_overall_correction_factor"
-    # Vendor recorded hardware identifiers, kept verbatim alongside the derived UUID.
     DEVICE_INFO = "patato_device_info"
-    # Group that holds the IPASC metadata inside a PATATO file, where the payload is not in
-    # the IPASC layout and the blocks must not sit at the root.
+    # Group that holds the IPASC metadata inside a PATATO file
     GROUP = "ipasc"
 
 

@@ -142,6 +142,10 @@ class PAData:
     def get_scan_datetime(self):
         return self.scan_reader.get_scan_datetime()
 
+    def get_device_info(self) -> dict:
+        """Identifiers the scanner recorded about itself, as written by the vendor."""
+        return self.scan_reader.get_device_info()
+
     def get_clinical_metadata(self):
         return self.scan_reader.get_clinical_metadata()
 

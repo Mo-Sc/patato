@@ -1,14 +1,11 @@
-#  Copyright (c) Thomas Else 2023-25.
-#  License: MIT
-
 """
 Unit conversions between PATATO's internal conventions and the IPASC metadata standard.
 
-IPASC requires SI units throughout (metres, seconds since the Unix epoch, kelvin). PATATO
-follows the acquisition conventions of the vendor formats it reads: wavelengths in
+IPASC requires SI units (metres, seconds since the Unix epoch in UTC, kelvin).
+PATATO follows the acquisition conventions of the vendor formats it reads: wavelengths in
 nanometres, acquisition times in seconds on the .NET epoch (the raw iThera tick counters
-divided by 1e7), and temperatures in degrees Celsius. Every IPASC read or write must pass
-through this module so the two directions cannot drift apart.
+divided by 1e7) on the scanner's local wall clock, and temperatures in degrees Celsius.
+Every IPASC read or write must pass through this module
 """
 
 import numpy as np
@@ -27,17 +24,19 @@ def wavelengths_from_ipasc(wavelengths_m) -> np.ndarray:
     return np.asarray(wavelengths_m, dtype=float) * 1e9
 
 
-def timestamps_to_ipasc(times_s):
+def timestamps_to_ipasc(times_s, utc_offset):
     """
-    Convert acquisition times to seconds since the Unix epoch, or None if they are relative.
+    Convert local wall clock acquisition times to UTC seconds since the Unix epoch.
 
-    Vendor readers are not required to put acquisition times on an absolute epoch; some
-    legacy files count from the start of the scan, and a reader with no times at all reports
-    NaN. Shifting the former by the epoch offset would claim an acquisition date before 1970,
-    and writing the latter would record a measurement that was never made, so neither is
-    reported.
+    Returns None when the result would not be a real timestamp
     """
-    converted = np.asarray(times_s, dtype=float) - POSIX_EPOCH_OFFSET_S
+    if utc_offset is None:
+        return None
+    converted = (
+        np.asarray(times_s, dtype=float)
+        - POSIX_EPOCH_OFFSET_S
+        - utc_offset.total_seconds()
+    )
     if not np.all(np.isfinite(converted)) or np.any(converted < 0):
         return None
     return converted
@@ -50,10 +49,6 @@ def timestamps_from_ipasc(times_s) -> np.ndarray:
 def temperature_to_ipasc(temperature_c):
     """
     Convert acquisition temperatures to kelvin, or return None if they were never recorded.
-
-    Vendor files routinely carry an all-zero or all-NaN temperature array when the probe has
-    no temperature sensor. Reporting that as 273.15 K would assert a measurement that was
-    never made, so an unpopulated array is omitted from the metadata instead.
     """
     temperature_c = np.asarray(temperature_c, dtype=float)
     if temperature_c.size == 0 or np.all(np.isnan(temperature_c) | (temperature_c == 0)):

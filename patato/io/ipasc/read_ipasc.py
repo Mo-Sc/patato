@@ -19,11 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class IPASCInterface(ReaderInterface):
-    """An interface for datasets in the IPASC consensus format.
+    """An interface for datasets in the IPASC format.
 
-    The format covers raw time series data only, so reconstructions, ultrasound,
-    segmentations and annotations are absent by construction. Metadata are converted from
-    IPASC's SI units into PATATO's internal conventions on the way in.
+    The format covers raw time series data only. Metadata are converted from
+    IPASC's SI units into PATATO's internal conventions.
     """
 
     def __init__(self, file_path):
@@ -32,10 +31,8 @@ class IPASCInterface(ReaderInterface):
 
         self.scan_name = split(file_path)[-1]
         self.pa_data = pf.load_data(file_path)
-        # IPASC binary data are [detectors, samples, wavelengths, frames]; PATATO indexes
-        # [frames, wavelengths, detectors, samples]. pacfish reads the whole array into
-        # memory anyway, so transpose it once into a contiguous block: reading it back as a
-        # strided view costs about four times as much on every access.
+        # IPASC binary data are [detectors, samples, wavelengths, frames]
+        # but PATATO is [frames, wavelengths, detectors, samples]
         _, self.nsamples, self.nwavelengths, self.nframes = np.shape(
             self.pa_data.binary_time_series_data
         )
@@ -55,15 +52,13 @@ class IPASCInterface(ReaderInterface):
             )
 
     def is_clinical(self):
-        # The base class infers this from the scanner positions, which an IPASC file does
-        # not let us read. It does record what the frame axis means, so use that directly.
         return self.pa_data.get_dimensionality() == "time"
 
     def _per_acquisition(self, values):
-        """Expand a per-frame metadatum onto PATATO's (frames, wavelengths) grid.
+        """Expand a per-frame metadata onto PATATOs (frames, wavelengths) grid.
 
         IPASC treats wavelength and frame as independent axes, whereas PATATO indexes every
-        acquisition by the pair, so a scalar or per-frame array is repeated across
+        acquisition as pair, so a scalar or per-frame array is repeated across
         wavelengths.
         """
         shape = (self.nframes, self.nwavelengths)
@@ -96,6 +91,15 @@ class IPASCInterface(ReaderInterface):
     def get_speed_of_sound(self):
         return self.pa_data.get_speed_of_sound()
 
+    def get_device_uuid(self):
+        return self.pa_data.get_device_uuid()
+
+    def get_device_info(self) -> dict:
+        import pacfish as pf
+
+        general = self.pa_data.meta_data_device.get(pf.MetadataDeviceTags.GENERAL.tag, {})
+        return dict(general.get(IPASCTags.DEVICE_INFO, {}))
+
     def _get_scan_times(self):
         return timestamps_from_ipasc(
             self._per_acquisition(self.pa_data.get_measurement_time_stamps())
@@ -126,7 +130,7 @@ class IPASCInterface(ReaderInterface):
         return np.full((self.nframes, self.nwavelengths), np.nan)
 
     def _get_run_numbers(self):
-        # IPASC has no notion of runs or repetitions. Zeros mark them unknown, matching what
+        # IPASC has no runs or repetitions. Zeros mark them unknown, matching what
         # the HDF5 reader falls back to for files that never stored them.
         return np.zeros((self.nframes, self.nwavelengths), dtype=int)
 
@@ -134,16 +138,15 @@ class IPASCInterface(ReaderInterface):
         return np.zeros((self.nframes, self.nwavelengths), dtype=int)
 
     def get_impulse_response(self):
-        # IPASC defines a detector frequency response, which is not the time domain impulse
-        # response that PATATO deconvolves with.
+        # IPASC records a detector frequency response, which is magnitude against frequency
+        # with no phase. PATATO deconvolves with the complex spectrum of a time domain
+        # impulse response, which cannot be recovered from magnitude alone.
         return None
 
     def _get_water_absorption(self):
         return None, None
 
     def _get_rois(self):
-        # IPASC regions of interest are named cuboids in device coordinates, not the image
-        # space polygons that PATATO annotates with.
         return {}
 
     def _get_segmentation(self):
@@ -161,8 +164,9 @@ class IPASCInterface(ReaderInterface):
         timestamps = self.pa_data.get_measurement_time_stamps()
         if timestamps is None:
             return np.nan
+        # IPASC times are seconds since the Unix epoch, so the offset is zero.
         first = float(np.asarray(timestamps).reshape(-1)[0])
-        return datetime.fromtimestamp(first, timezone.utc).replace(tzinfo=None)
+        return datetime.fromtimestamp(first, timezone.utc)
 
     def get_scan_comment(self):
         return ""

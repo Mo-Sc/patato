@@ -113,7 +113,7 @@ class HDF5ReaderLegacy(ReaderInterface):
         try:
             value = self.file.attrs[LegacyHDF5Tags.DATE]
             if isinstance(value, str):
-                return dateutil.parser.isoparse(value).replace(tzinfo=None)
+                return dateutil.parser.isoparse(value)
             return value
         except KeyError:
             return np.nan

@@ -1,16 +1,9 @@
-#  Copyright (c) Thomas Else 2023-25.
-#  License: MIT
-
 """
-Translation of PATATO scan metadata into the IPASC consensus metadata dictionary.
-
-This is the single source of truth for the mapping. It is used both to embed IPASC metadata
-groups into PATATO's own HDF5 files and to build native IPASC exports, so the two cannot
-drift apart. Only metadata that PATATO actually holds are emitted: IPASC's "report if
-present" rule means an absent field must be omitted rather than guessed at.
+Translation of PATATO scan metadata into the IPASC metadata.
 """
 
 import uuid
+from datetime import datetime
 
 import numpy as np
 
@@ -34,33 +27,8 @@ _CPP_DATA_TYPES = {
 }
 
 
-# Identifiers that name the instrument itself. The transducer and laser serials are recorded
-# too, but describe swappable components, and the software version changes without the
-# hardware changing, so none of them takes part in the device identity.
-_DEVICE_IDENTITY_KEYS = ("DeviceSN", "DAQ_MACaddress")
-
-
-def _device_uuid(device_info: dict) -> str | None:
-    """Map the identifiers a scanner recorded about itself onto an IPASC device UUID.
-
-    IPASC wants the 8-4-4-4-12 form, which no manufacturer serial follows, so the recorded
-    identifiers are hashed into a version 5 UUID. The result is deterministic, so every scan
-    from one instrument carries the same device UUID, and it is derived from what the file
-    actually records rather than invented. None when the source records nothing.
-    """
-    identity = {k: device_info[k] for k in _DEVICE_IDENTITY_KEYS if device_info.get(k)}
-    if not identity:
-        return None
-    name = "|".join(f"{key}={identity[key]}" for key in sorted(identity))
-    return str(uuid.uuid5(uuid.NAMESPACE_OID, name))
-
-
 def _cpp_data_type(dtype) -> str:
-    """Name a numpy dtype the way IPASC does, in C++ terms.
-
-    An unmapped dtype raises rather than falling back to a guess: naming the wrong width
-    would make the binary data unreadable to anything trusting the metadata.
-    """
+    """Name a numpy dtype the way IPASC does, in C++ terms."""
     name = np.dtype(dtype).name
     if name not in _CPP_DATA_TYPES:
         raise ValueError(f"no IPASC data type name for '{name}'")
@@ -98,7 +66,15 @@ def build_ipasc_metadata(reader) -> tuple[dict, dict]:
         Tags.ACQUISITION_WAVELENGTHS.tag: wavelengths_to_ipasc(reader.get_wavelengths()),
     }
 
-    timestamps = timestamps_to_ipasc(np.asarray(reader.get_scan_times())[:, 0])
+    # Scanners stamp frames with their local clock, so the acquisition datetime's offset is
+    # what makes the times absolute. A reader that records no date cannot supply one.
+    scan_datetime = reader.get_scan_datetime()
+    utc_offset = (
+        scan_datetime.utcoffset() if isinstance(scan_datetime, datetime) else None
+    )
+    timestamps = timestamps_to_ipasc(
+        np.asarray(reader.get_scan_times())[:, 0], utc_offset
+    )
     if timestamps is not None:
         acquisition[Tags.MEASUREMENT_TIMESTAMPS.tag] = timestamps
 
@@ -110,16 +86,11 @@ def build_ipasc_metadata(reader) -> tuple[dict, dict]:
     if temperature is not None:
         acquisition[Tags.TEMPERATURE_CONTROL.tag] = temperature
 
-    # No IPASC tag describes a per-acquisition gain, so it travels as a custom parameter.
+    # No IPASC tag describes a per-acquisition gain, so it becomes a custom parameter.
     # Without it a reconstruction from the exported file would apply no energy correction.
     correction_factor = np.asarray(reader.get_correction_factor(), dtype=float)
     if np.isfinite(correction_factor).all():
         acquisition[IPASCTags.CORRECTION_FACTOR] = correction_factor
-
-    # Spatial poses are deliberately not reported. IPASC requires metres, but PATATO passes
-    # the scanner z position through from the vendor without converting it (iThera reports
-    # stage positions in millimetres), so the unit cannot be guaranteed. Emitting an
-    # unverified unit would silently corrupt the geometry of anything reading the file.
 
     creator = pf.DeviceMetaDataCreator()
     for position in geometry:
@@ -134,10 +105,9 @@ def build_ipasc_metadata(reader) -> tuple[dict, dict]:
     general = device[pf.MetadataDeviceTags.GENERAL.tag]
     device_info = reader.get_device_info()
     if device_info:
-        # Carried verbatim as a custom parameter as well, because the UUID is a one way
-        # mapping and the serials are what a reader can actually check against a scanner.
+        # No IPASC tag holds vendor serials, so they travel as a custom parameter.
         general[IPASCTags.DEVICE_INFO] = dict(device_info)
-    device_uuid = _device_uuid(device_info)
+    device_uuid = reader.get_device_uuid()
     if device_uuid is not None:
         general[pf.MetadataDeviceTags.UNIQUE_IDENTIFIER.tag] = device_uuid
 
@@ -149,8 +119,7 @@ def describe_ipasc_metadata(reader) -> list[dict]:
     Describe every IPASC acquisition metadatum for a scan, present or not.
 
     Each entry carries the IPASC tag name, the value PATATO can supply, the SI unit and
-    whether IPASC considers the field minimal. Absent fields are reported with a value of
-    None rather than dropped, so a viewer can show what a dataset is missing.
+    whether IPASC considers the field minimal.
     """
     from pacfish import MetadataAcquisitionTags as Tags
     from pacfish import MetadataDeviceTags as DeviceTags

@@ -274,10 +274,6 @@ class HDF5Writer(WriterInterface):
     def set_ipasc_metadata(self, acquisition: dict, device: dict):
         """
         Write the IPASC metadata under an `ipasc` group, in the layout IPASC defines.
-
-        The group is additive, so the PATATO payload is untouched. It is nested rather than
-        written at the root because the payload itself is not in the IPASC layout, and a file
-        with a root level `meta_data` group would look like an IPASC container.
         """
 
         def write_group(group, data):
@@ -465,9 +461,7 @@ class HDF5Reader(ReaderInterface):
 
         try:
             if type(self.file.attrs[HDF5Tags.DATE]) == str:
-                return dateutil.parser.isoparse(self.file.attrs[HDF5Tags.DATE]).replace(
-                    tzinfo=None
-                )
+                return dateutil.parser.isoparse(self.file.attrs[HDF5Tags.DATE])
             else:
                 return self.file.attrs[HDF5Tags.DATE]
         except KeyError:
@@ -573,6 +567,3 @@ class HDF5Reader(ReaderInterface):
         if self._own_file:
             self.file.close()
 
-
-class PACFISHInterface(ReaderInterface):
-    pass
