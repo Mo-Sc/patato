@@ -57,6 +57,7 @@ class ROITags:
     AX0_INDEX = "AX0_INDEX"
     ROI_GROUP = "ROI_GROUP"
     ROI_ID = "ROI_ID"
+    ROI_GROUP_UID = "ROI_GROUP_UID"
 
 
 class GCAttributeTags:

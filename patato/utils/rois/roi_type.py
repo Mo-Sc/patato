@@ -48,6 +48,8 @@ class ROI:
             output[ROITags.ROI_GROUP] = self.roi_group_id
         if self.roi_id is not None:
             output[ROITags.ROI_ID] = self.roi_id
+        if self.roi_group_uid is not None:
+            output[ROITags.ROI_GROUP_UID] = self.roi_group_uid
         return output
 
     def __init__(
@@ -63,6 +65,7 @@ class ROI:
         shape_type: str = "polygon",
         roi_group_id=None,
         roi_id=None,
+        roi_group_uid=None,
     ):
         self.points = points
         self.z = z_position
@@ -77,6 +80,7 @@ class ROI:
         self.shape_type = shape_type
         self.roi_group_id = roi_group_id
         self.roi_id = roi_id
+        self.roi_group_uid = roi_group_uid
 
     @classmethod
     def from_polygon_mm(

@@ -447,6 +447,7 @@ class HDF5Reader(ReaderInterface):
                         dataset.attrs.get(ROITags.ROI_TYPE, "Unknown"),
                         dataset.attrs.get(ROITags.ROI_GROUP),
                         dataset.attrs.get(ROITags.ROI_ID),
+                        dataset.attrs.get(ROITags.ROI_GROUP_UID),
                     )
         return output
 
