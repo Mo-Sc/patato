@@ -22,7 +22,7 @@ def test_explicit_roi_frames_and_ids_round_trip(tmp_path):
             0,
             0,
             0,
-            "PATARI",
+            "OPTARI",
             "undefined",
             True,
             [2, 3],

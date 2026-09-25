@@ -304,7 +304,7 @@ class HDF5Writer(WriterInterface):
         roi_name = str(roi_data.attributes[ROITags.ROI_NAME])
         roi_position = str(roi_data.attributes[ROITags.ROI_POSITION])
         group_name = (
-            roi_name if roi_name.startswith("PATARI") else roi_name + "_" + roi_position
+            roi_name if roi_name.startswith("OPTARI") else roi_name + "_" + roi_position
         )
         region_group = roi_group.require_group(group_name)
         n = str(len(region_group))

@@ -1,12 +1,11 @@
-name: Build PATATO wheels for PATARI
+name: Build PATATO wheels for OPTARI
 
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
-      - patari
-      - patari-ipasc
+      - optari
   release:
     types:
       - published

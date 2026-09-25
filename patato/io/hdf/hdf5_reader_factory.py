@@ -49,10 +49,10 @@ def is_legacy_hdf5(file) -> bool:
         origin = json.loads(value) if isinstance(value, str) else None
     except json.JSONDecodeError:
         origin = None
-    if origin is not None and origin.get("tool") == "PATARI":
+    if origin is not None and origin.get("tool") == "OPTARI":
         return False
 
-    # fallback to detect PATARI scans before the origin attribute was added
+    # fallback to detect OPTARI scans before the origin attribute was added
     # TODO: remove
     raw_data = file.get(HDF5Tags.RAW_DATA)
     if raw_data is not None and LegacyHDF5Tags.SCAN_NAME in raw_data.attrs:
