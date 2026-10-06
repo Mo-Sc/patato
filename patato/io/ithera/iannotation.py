@@ -79,10 +79,11 @@ class IROIShape(ABC):
     @staticmethod
     def extract_roi_coords(roi_string: str) -> list:
         """
-        Extract the (x, y, z) coordinates from the pos or size string.
+        Extract the (x, y) coordinates from the pos or size string.
+        Newer ilabs writes "Point(x, y)", older versions "PyQt5.QtGui.QVector3D(x, y, z)"
         """
         roi_coords = re.search(r"\((.*?)\)", roi_string).group(1).split(",")
-        return [float(c.strip()) for c in roi_coords]
+        return [float(c.strip()) for c in roi_coords[:2]]
 
     @property
     def type(self) -> str:
@@ -313,21 +314,33 @@ class RectangleROI(IROIShape):
 
 class IAnnotation:
     """
-    Class to load and parse iThera iannotation files.
+    Class to load and parse iThera *.iannotation and *.iROI files.
     """
 
     def _load_iannotation_file(self):
         """
-        Load the iannotation file and parse the data.
+        Load the iannotation or iROI file and parse the data.
         """
 
         with open(self._file_path, "r") as json_file:
             data = json.load(json_file)
 
-        self._scan_hash = data.get("ScanHash", None)
-        annotations = []
+        if data.get("__classname") == "iROIListWrapper":
+            # An iROI file is a single ROI list without sweeps
+            self._scan_hash = data.get("dataset_hash", None)
+            raw_annotations = [
+                {
+                    "__classname": "iROIList",
+                    "ROIList": data["roilist"],
+                    "Source": "iLabs",
+                }
+            ]
+        else:
+            self._scan_hash = data.get("ScanHash", None)
+            raw_annotations = data["Annotations"]
 
-        for annotation in data["Annotations"]:
+        annotations = []
+        for annotation in raw_annotations:
             roi_list = []
             for roi in annotation["ROIList"]:
                 roi_object = IROIShape.create_roi(roi)
@@ -364,7 +377,7 @@ class IAnnotation:
             self._file_path = file_path
             self._load_iannotation_file()
         else:
-            raise FileNotFoundError(f"iannotation file not found: {file_path}")
+            raise FileNotFoundError(f"iannotation/iROI file not found: {file_path}")
 
     @property
     def scan_name(self) -> str:

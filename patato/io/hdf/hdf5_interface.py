@@ -152,6 +152,9 @@ class HDF5Writer(WriterInterface):
     def set_device_info(self, device_info: dict):
         self.file.attrs[HDF5Tags.DEVICE_INFO] = json.dumps(device_info)
 
+    def set_acquisition_start_frame(self, frame: int):
+        self.file.attrs[HDF5Tags.ACQUISITION_START_FRAME] = int(frame)
+
     def set_pa_data(self, raw_data):
         if type(raw_data) == PATimeSeries:
             raw_data = raw_data.raw_data
@@ -428,8 +431,9 @@ class HDF5Reader(ReaderInterface):
                 roi_group = self.file[HDF5Tags.REGIONS_OF_INTEREST][roi_name]
                 for roi_number in roi_group:
                     dataset = roi_group[roi_number]
+                    # absent for ROIs without a frame (e.g. iLabs iROI), see ROI.attributes
                     ax0_indices = np.asarray(
-                        dataset.attrs[ROITags.AX0_INDEX], dtype=int
+                        dataset.attrs.get(ROITags.AX0_INDEX, []), dtype=int
                     ).reshape(-1)
                     output[(roi_name, roi_number)] = ROI(
                         dataset[:],
@@ -486,6 +490,10 @@ class HDF5Reader(ReaderInterface):
         if isinstance(value, bytes):
             value = value.decode()
         return json.loads(value)
+
+    def get_acquisition_start_frame(self) -> "int | None":
+        value = self.file.attrs.get(HDF5Tags.ACQUISITION_START_FRAME)
+        return None if value is None else int(value)
 
     def _get_pa_data(self):
         return self.file[HDF5Tags.RAW_DATA], dict(self.file[HDF5Tags.RAW_DATA].attrs)

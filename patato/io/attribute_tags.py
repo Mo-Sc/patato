@@ -99,6 +99,7 @@ class HDF5Tags:
     SCAN_NAME = "scan_name"
     CLINICAL_METADATA = "clinical_metadata"
     DEVICE_INFO = "device_info"
+    ACQUISITION_START_FRAME = "acquisition_start_frame"
     FILE_ORIGIN = "file_origin"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"

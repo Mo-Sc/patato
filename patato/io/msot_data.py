@@ -146,6 +146,10 @@ class PAData:
         """Identifiers the scanner recorded about itself, as written by the vendor."""
         return self.scan_reader.get_device_info()
 
+    def get_acquisition_start_frame(self) -> "int | None":
+        """Index of the frame where the user started recording, None if unknown."""
+        return self.scan_reader.get_acquisition_start_frame()
+
     def get_clinical_metadata(self):
         return self.scan_reader.get_clinical_metadata()
 

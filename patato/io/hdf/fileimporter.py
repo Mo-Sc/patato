@@ -119,8 +119,7 @@ class ReaderInterface(metaclass=ABCMeta):
         return None
 
     def get_device_uuid(self):
-        """A device UUID the source file
-        """
+        """A device UUID the source file"""
         return None
 
     def get_device_info(self) -> dict:
@@ -130,6 +129,12 @@ class ReaderInterface(metaclass=ABCMeta):
         of them is interpreted here. Empty when the format records nothing.
         """
         return {}
+
+    def get_acquisition_start_frame(self) -> "int | None":
+        """Index of the frame where the user started recording, None when the format does
+        not record one.
+        """
+        return None
 
     @property
     def raw_data(self):
@@ -351,6 +356,9 @@ class WriterInterface(metaclass=ABCMeta):
         device_info = reader.get_device_info()
         if device_info:
             self.set_device_info(device_info)
+        acquisition_start_frame = reader.get_acquisition_start_frame()
+        if acquisition_start_frame is not None:
+            self.set_acquisition_start_frame(acquisition_start_frame)
         clinical_metadata = reader.get_clinical_metadata()
         if clinical_metadata is not None:
             self.set_clinical_metadata(clinical_metadata)
@@ -389,6 +397,9 @@ class WriterInterface(metaclass=ABCMeta):
 
     def set_device_info(self, device_info: dict):
         """Sets the device information as recorded by the scanner vendor."""
+
+    def set_acquisition_start_frame(self, frame: int):
+        """Sets the index of the frame where the user started recording."""
 
     def __enter__(self):
         return self
