@@ -148,27 +148,10 @@ class OpenCLBackprojection(ReconstructionAlgorithm):
 
         nx, ny, nz = n_pixels
 
-        if nx == 1:
-            dx = 1
-        else:
-            dx = field_of_view[0] / (n_pixels[0] - 1)
-
-        if ny == 1:
-            dy = 1
-        else:
-            dy = field_of_view[1] / (n_pixels[1] - 1)
-
-        if nz == 1:
-            dz = 1
-        else:
-            dz = field_of_view[2] / (n_pixels[2] - 1)
-
-        x_0 = -field_of_view[0] / 2 if nx != 1 else 0
-        y_0 = -field_of_view[1] / 2 if ny != 1 else 0
-        if nz == 1:
-            z_0 = 0
-        else:
-            z_0 = -field_of_view[2] / 2
+        # The field of view spans the outer pixel edges, so the spacing is fov / n
+        # and the first pixel centre sits half a pixel inside the edge.
+        dx, dy, dz = (f / n for f, n in zip(field_of_view, n_pixels))
+        x_0, y_0, z_0 = (-f / 2 + d / 2 for f, d in zip(field_of_view, (dx, dy, dz)))
 
         n_detectors = detectors.shape[0]
         n_samples = signal.shape[-1]

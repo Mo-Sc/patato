@@ -79,6 +79,11 @@ def generate_mask(vertices, fov_x, nx, fov_y=None, ny=None):
     if not isinstance(fov_x, (list, tuple, np.ndarray)):
         fov_x = [-fov_x / 2, fov_x / 2]
         fov_y = [-fov_y / 2, fov_y / 2]
+    # The field of view spans the outer pixel edges; test the pixel centres inside it.
+    half_x = (fov_x[1] - fov_x[0]) / nx / 2
+    half_y = (fov_y[1] - fov_y[0]) / ny / 2
+    fov_x = [fov_x[0] + half_x, fov_x[1] - half_x]
+    fov_y = [fov_y[0] + half_y, fov_y[1] - half_y]
     if isinstance(vertices, (Polygon, MultiPolygon)):
         mask = get_polygon_mask(vertices, fov_x, fov_y, nx, ny)
     else:

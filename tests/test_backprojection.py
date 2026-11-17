@@ -33,7 +33,8 @@ class TestBackprojection(unittest.TestCase):
             self.filtered_time_series, self.pa, **self.new_settings
         )
         self.assertEqual(r.shape, (1, 2, 1, 334, 333))
-        self.assertAlmostEqual(np.mean(r[0, 0].values), 315.63669659956736, 2)
+        # 315.6367 before the 2026-11-17 grid change (fov / (n - 1) spacing)
+        self.assertAlmostEqual(np.mean(r[0, 0].values), 316.3982, 2)
 
         reconstructor = reconstructor_class([1, 333, 334], [1.0, 0.025, 0.025])
         r, _, _ = reconstructor.run(

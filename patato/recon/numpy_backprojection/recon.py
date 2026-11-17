@@ -56,10 +56,11 @@ class SlowBackprojection(ReconstructionAlgorithm):
         frames = int(np.prod(original_shape))
         signal = time_series.reshape((frames,) + time_series.shape[-2:])
 
+        # pixel centres, with the field of view spanning the outer pixel edges
         xs, ys, zs = [
-            np.linspace(-field_of_view[i] / 2, field_of_view[i] / 2, n_pixels[i])
-            if n_pixels[i] != 1
-            else np.array([0.0])
+            (np.arange(n_pixels[i]) - (n_pixels[i] - 1) / 2)
+            * field_of_view[i]
+            / n_pixels[i]
             for i in range(3)
         ]
         Z, Y, X = np.meshgrid(zs, ys, xs, indexing="ij")

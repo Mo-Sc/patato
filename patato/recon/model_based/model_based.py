@@ -197,9 +197,9 @@ class ModelBasedReconstruction(ReconstructionAlgorithm):
             self._fs = fs
             nx = n_pixels[indices[0]]
             self._nx = nx
-            dx = field_of_view[indices[0]] / (nx - 1)
+            dx = field_of_view[indices[0]] / nx
             self._dx = dx
-            x_0 = -field_of_view[indices[0]] / 2
+            x_0 = -field_of_view[indices[0]] / 2 + dx / 2  # FOV spans the pixel edges
             self._x_0 = x_0
 
             gpu = kwargs_model.get("gpu", cuda_enabled)
@@ -279,8 +279,8 @@ class ModelBasedReconstruction(ReconstructionAlgorithm):
             irf = kwargs["irf"] if do_irf else None
 
             nx = n_pixels[indices[0]]
-            dx = field_of_view[indices[0]] / (nx - 1)
-            x_0 = -field_of_view[indices[0]] / 2
+            dx = field_of_view[indices[0]] / nx
+            x_0 = -field_of_view[indices[0]] / 2 + dx / 2  # FOV spans the pixel edges
             nt = signal.shape[-1]
 
             model = self.generate_model(

@@ -18,6 +18,15 @@ from ..processing.processing_algorithm import (
 
 
 class ReconstructionAlgorithm(TimeSeriesProcessingAlgorithm, ABC):
+    """Base class for reconstructions.
+
+    Pixel grid: ``field_of_view`` spans the outer pixel edges, as in iThera's vendor
+    images and ultrasound, so the spacing is ``fov / n`` and the pixel centres run from
+    ``-fov/2 + dx/2`` to ``fov/2 - dx/2``. Reconstructions saved by this fork before
+    2026-11-17 used ``linspace(-fov/2, fov/2, n)`` (spacing ``fov / (n - 1)``) and are
+    0.25 % (400 px) smaller than their stored field of view says; re-run them.
+    """
+
     def pre_prepare_data(self, x):
         return x
 

@@ -128,8 +128,10 @@ class DataSequence(ProcessingResult, ABC):
 
     @property
     def extent(self):
-        coords = [self.da.coords[x] for x in self.two_dims()]
-        return sum(((np.min(np.array(c)), np.max(np.array(c))) for c in coords), ())
+        # outer pixel edges, as matplotlib's imshow expects: half a pixel past the centres
+        coords = [np.array(self.da.coords[x]) for x in self.two_dims()]
+        half = [(c[1] - c[0]) / 2 for c in coords]
+        return sum(((c.min() - h, c.max() + h) for c, h in zip(coords, half)), ())
 
     def two_dims(self):
         if self.da.coords["x"].size == 1:
@@ -419,8 +421,9 @@ class ImageSequence(DataSequence):
                 (-x / 2, x / 2) if x is not None else (0, 0) for x in field_of_view
             ]
 
+        # pixel centres, with the field of view spanning the outer pixel edges
         xs = [
-            np.linspace(x, y, N)
+            x + (np.arange(N) + 0.5) * (y - x) / N
             for (x, y), N in zip(field_of_view, raw_data.shape[-3:][::-1])
         ]
 
