@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, Sequence
 import ast
+import itertools
 import h5py
 import numpy as np
 from ...core.image_structures.image_structure_types import IMAGE_DATA_TYPES
@@ -160,7 +161,15 @@ class HDF5Writer(WriterInterface):
             raw_data = raw_data.raw_data
         if raw_data is None:
             return
-        self.file.create_dataset(HDF5Tags.RAW_DATA, data=raw_data)
+        # Integer ADC samples compress ~2x, unlike float images. One chunk per frame
+        # matches the frame-wise dask reads, so a frame decompresses exactly one chunk.
+        self.file.create_dataset(
+            HDF5Tags.RAW_DATA,
+            data=raw_data,
+            chunks=(1,) + raw_data.shape[1:],
+            shuffle=True,
+            compression="gzip",
+        )
 
     def set_scan_name(self, scan_name: str):
         self.file.attrs[HDF5Tags.SCAN_NAME] = scan_name
@@ -223,7 +232,13 @@ class HDF5Writer(WriterInterface):
         subgroup = grp.require_group(
             image_data.get_hdf5_sub_name()
         )  # E.g. reconstruction method or something
-        name = str(len(subgroup.keys())) + image_data.algorithm_id  # E.g. "0" + "E"
+        # E.g. "0" + "E". The first free index, not len(subgroup): once a dataset was
+        # deleted, len() names one that still exists.
+        name = next(
+            f"{i}{image_data.algorithm_id}"
+            for i in itertools.count()
+            if f"{i}{image_data.algorithm_id}" not in subgroup
+        )
         dataset = subgroup.create_dataset(name, data=image_data.raw_data)
 
         # Copy attributes
