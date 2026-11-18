@@ -74,14 +74,23 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
         ReconAttributeTags.ADDITIONAL_PARAMETERS, {}
     )  # Custom parameters
 
-    # Field of view y and z:
-    field_of_view_x = settings.get(ReconAttributeTags.X_FIELD_OF_VIEW, 0.0)
-    field_of_view_y = settings.get(ReconAttributeTags.Y_FIELD_OF_VIEW, 0.0)
-    field_of_view_z = settings.get(ReconAttributeTags.Z_FIELD_OF_VIEW, 0.0)
-
-    number_of_pixels_x = settings.get(ReconAttributeTags.X_NUMBER_OF_PIXELS, 1)
-    number_of_pixels_y = settings.get(ReconAttributeTags.Y_NUMBER_OF_PIXELS, 1)
-    number_of_pixels_z = settings.get(ReconAttributeTags.Z_NUMBER_OF_PIXELS, 1)
+    # Grid, passed only when the preset sets one: algorithms with a fixed output grid
+    pixel_tags = (
+        ReconAttributeTags.X_NUMBER_OF_PIXELS,
+        ReconAttributeTags.Y_NUMBER_OF_PIXELS,
+        ReconAttributeTags.Z_NUMBER_OF_PIXELS,
+    )
+    fov_tags = (
+        ReconAttributeTags.X_FIELD_OF_VIEW,
+        ReconAttributeTags.Y_FIELD_OF_VIEW,
+        ReconAttributeTags.Z_FIELD_OF_VIEW,
+    )
+    grid = {}
+    if any(tag in settings for tag in pixel_tags + fov_tags):
+        grid = dict(
+            n_pixels=tuple(settings.get(tag, 1) for tag in pixel_tags),
+            field_of_view=tuple(settings.get(tag, 0.0) for tag in fov_tags),
+        )
 
     # Number of pixels x and y
     reconstruction_algorithm = RECONSTRUCTION_NAMES[
@@ -102,8 +111,7 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
         universal_backprojection=ubp,
     )
     step_2 = reconstruction_algorithm(
-        (number_of_pixels_x, number_of_pixels_y, number_of_pixels_z),
-        (field_of_view_x, field_of_view_y, field_of_view_z),
+        **grid,
         **recon_params,
     )
     step_1.add_child(step_2)
