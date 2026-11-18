@@ -136,6 +136,12 @@ class ReaderInterface(metaclass=ABCMeta):
         """
         return None
 
+    def get_acquisition_delay(self) -> "float | None":
+        """Seconds between the laser pulse and the first recorded sample, None when the
+        format does not record it.
+        """
+        return None
+
     @property
     def raw_data(self):
         return self.get_pa_data()
@@ -359,6 +365,9 @@ class WriterInterface(metaclass=ABCMeta):
         acquisition_start_frame = reader.get_acquisition_start_frame()
         if acquisition_start_frame is not None:
             self.set_acquisition_start_frame(acquisition_start_frame)
+        acquisition_delay = reader.get_acquisition_delay()
+        if acquisition_delay is not None:
+            self.set_acquisition_delay(acquisition_delay)
         clinical_metadata = reader.get_clinical_metadata()
         if clinical_metadata is not None:
             self.set_clinical_metadata(clinical_metadata)
@@ -400,6 +409,9 @@ class WriterInterface(metaclass=ABCMeta):
 
     def set_acquisition_start_frame(self, frame: int):
         """Sets the index of the frame where the user started recording."""
+
+    def set_acquisition_delay(self, delay: float):
+        """Sets the seconds between the laser pulse and the first recorded sample."""
 
     def __enter__(self):
         return self

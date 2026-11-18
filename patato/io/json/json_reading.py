@@ -93,6 +93,18 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
 
     # Whether to do universal backprojection.
     ubp = settings.get("UBP", False)
+    # needed to align ithera recons with PATATO BP
+    timing_options = {
+        argument: settings[tag]
+        for argument, tag in (
+            (
+                "acquisition_delay_correction",
+                PreprocessingAttributeTags.ACQUISITION_DELAY_CORRECTION,
+            ),
+            ("irf_time_zero", PreprocessingAttributeTags.IRF_TIME_ZERO),
+        )
+        if tag in settings
+    }
     step_1 = preprocessing_algorithm(
         time_factor=time_interpolation_factor,
         detector_factor=detector_interpolation_factor,
@@ -103,6 +115,7 @@ def read_reconstruction_preset(json_path: Union[str, dict]):
         filter_window_size=window_size,
         absolute=absolute_transformation,
         universal_backprojection=ubp,
+        **timing_options,
     )
     step_2 = reconstruction_algorithm(
         (number_of_pixels_x, number_of_pixels_y, number_of_pixels_z),

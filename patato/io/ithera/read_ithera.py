@@ -198,12 +198,12 @@ class iTheraMSOT(ReaderInterface):
             pat_attributes["PREPROCESSING_ALGORITHM"] = (
                 "iThera " + attributes["SingalFilterType"]
             )
-            pat_attributes["speedofsound"] = self._compute_speed_of_sound(
-                self._get_software_version(), attributes.get("TrimSpeedOfSound")
-            )
+            # The device reconstructs with the scan's speed of sound (base + the scan
+            # node's trim + water at the frame temperature) (TODO: verify)
+            pat_attributes["speedofsound"] = self.get_speed_of_sound()
             pat_attributes["Notes"] = (
-                "iThera Reconstruction, imported by PATATO. Speed of sound is offset from water "
-                "sos at the given temperature. "
+                "iThera Reconstruction, imported by PATATO. Speed of sound is the scan's "
+                "(base + trim + water at the frame temperature). "
             )
 
             rec = Reconstruction(
@@ -325,6 +325,20 @@ class iTheraMSOT(ReaderInterface):
         return self._compute_speed_of_sound(
             self._get_software_version(), trim_speed_of_sound
         )
+
+    def get_acquisition_delay(self) -> "float | None":
+        """
+        Seconds between the laser pulse and the first recorded sample:
+        DAQTriggerDelay x DAQTriggerDelayStepSize. The XML gives no unit, but probably ns
+        """
+        values = [
+            self.xml_tree.getElementsByTagName(tag)
+            for tag in ("DAQTriggerDelay", "DAQTriggerDelayStepSize")
+        ]
+        if not all(v and v[0].firstChild for v in values):
+            return None
+        delay, step = (float(v[0].firstChild.nodeValue) for v in values)
+        return delay * step * 1e-9
 
     def __init__(self, folder, scan_name=None):
         super().__init__()

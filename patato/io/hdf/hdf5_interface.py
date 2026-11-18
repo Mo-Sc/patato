@@ -156,6 +156,9 @@ class HDF5Writer(WriterInterface):
     def set_acquisition_start_frame(self, frame: int):
         self.file.attrs[HDF5Tags.ACQUISITION_START_FRAME] = int(frame)
 
+    def set_acquisition_delay(self, delay: float):
+        self.file.attrs[HDF5Tags.ACQUISITION_DELAY] = float(delay)
+
     def set_pa_data(self, raw_data):
         if type(raw_data) == PATimeSeries:
             raw_data = raw_data.raw_data
@@ -509,6 +512,10 @@ class HDF5Reader(ReaderInterface):
     def get_acquisition_start_frame(self) -> "int | None":
         value = self.file.attrs.get(HDF5Tags.ACQUISITION_START_FRAME)
         return None if value is None else int(value)
+
+    def get_acquisition_delay(self) -> "float | None":
+        value = self.file.attrs.get(HDF5Tags.ACQUISITION_DELAY)
+        return None if value is None else float(value)
 
     def _get_pa_data(self):
         return self.file[HDF5Tags.RAW_DATA], dict(self.file[HDF5Tags.RAW_DATA].attrs)

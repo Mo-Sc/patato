@@ -15,6 +15,8 @@ class PreprocessingAttributeTags:
     PROCESSING_ALGORITHM = "PREPROCESSING_ALGORITHM"
     COUPLANT_CORRECTION = "COUPLANT_CORRECTION"
     COUPLANT_PATH_LENGTH = "COUPLANT_PATH_LENGTH"
+    ACQUISITION_DELAY_CORRECTION = "DAQ_DELAY_CORRECTION"
+    IRF_TIME_ZERO = "IRF_TIME_ZERO"
 
 
 class ReconAttributeTags:
@@ -100,6 +102,7 @@ class HDF5Tags:
     CLINICAL_METADATA = "clinical_metadata"
     DEVICE_INFO = "device_info"
     ACQUISITION_START_FRAME = "acquisition_start_frame"
+    ACQUISITION_DELAY = "acquisition_delay"
     FILE_ORIGIN = "file_origin"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"

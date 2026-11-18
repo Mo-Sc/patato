@@ -6,6 +6,7 @@ from typing import Union, Tuple, Optional, Dict
 
 import numpy as np
 from patato.io.attribute_tags import PreprocessingAttributeTags
+from scipy.signal import hilbert as analytic_signal
 from scipy.signal.windows import hann
 
 from .processing_algorithm import TimeSeriesProcessingAlgorithm
@@ -73,6 +74,8 @@ def make_filter(
     rise: float = 0.2,
     n_filter: int = 1024,
     window: Optional[str] = None,
+    delay: float = 0.0,
+    irf_time_zero: str = "centre",
 ):
     """
     Make the filter for the time series.
@@ -88,6 +91,13 @@ def make_filter(
     rise : float
     n_filter : int
     window
+    delay : float
+        Seconds between the laser pulse and the first recorded sample. Every signal is
+        delayed by this much, so sample n means time n / fs as the reconstruction assumes.
+    irf_time_zero : str
+        "centre": the impulse response's time zero is its middle sample (what fftshift
+        assumes). "peak": it is the envelope peak, so the deconvolution sharpens without
+        moving signals in time.
 
     Returns
     -------
@@ -96,6 +106,9 @@ def make_filter(
 
     # Impulse response correction
     if irf is not None:
+        if irf_time_zero == "peak":
+            peak = int(np.argmax(np.abs(analytic_signal(irf))))
+            irf = np.roll(irf, len(irf) // 2 - peak)
         irf_shifted = np.fft.fftshift(irf)
         # Divide by the impulse response to deconvolve
         output *= (
@@ -103,6 +116,11 @@ def make_filter(
         )
         # Suppress high frequencies to avoid amplifying noise - apply a window.
         output *= np.fft.fftshift(hann(n_samples))
+
+    # Acquisition delay as a phase ramp. The shift is circular: the last samples wrap to
+    # t ~ 0, distances of a fraction of a millimetre from the detectors, outside any FOV.
+    if delay:
+        output *= np.exp(-2j * np.pi * np.fft.fftfreq(n_samples, 1 / fs) * delay)
 
     # Hilbert Transform
     frequencies = np.fft.fftfreq(n_samples)
@@ -184,9 +202,17 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
         window: str = "hann",
         absolute: Optional[str] = None,
         universal_backprojection=False,
+        acquisition_delay_correction: bool = False,
+        irf_time_zero: str = "centre",
     ):
         # Initialise the preprocessor
         super().__init__()
+        if irf_time_zero not in ("centre", "peak"):
+            raise ValueError(
+                f"IRF_TIME_ZERO must be 'centre' or 'peak', not {irf_time_zero!r}."
+            )
+        self.acquisition_delay_correction = acquisition_delay_correction
+        self.irf_time_zero = irf_time_zero
         self.time_factor = time_factor
         self.detector_factor = detector_factor
         self.hilbert = hilbert
@@ -200,7 +226,9 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
         self.absolute = absolute
         self.filter = None
 
-    def pre_compute_filter(self, n_samples: int, fs: float, irf: Array = None):
+    def pre_compute_filter(
+        self, n_samples: int, fs: float, irf: Array = None, delay: float = 0.0
+    ):
         """
         Precompute the filter to be applied.
 
@@ -209,6 +237,8 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
         n_samples : int
         fs : float
         irf : Array
+        delay : float
+            Acquisition delay in seconds, applied only with acquisition_delay_correction.
         """
         self.filter = jnp.array(
             make_filter(
@@ -218,6 +248,8 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
                 self.hilbert,
                 self.lp_filter,
                 self.hp_filter,
+                delay=delay if self.acquisition_delay_correction else 0.0,
+                irf_time_zero=self.irf_time_zero,
             )
         )
 
@@ -324,8 +356,18 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
         # Sampling frequency
         fs = time_series.attributes["fs"]
 
+        delay = 0.0
+        if self.acquisition_delay_correction:
+            delay = pa_data.get_acquisition_delay() if pa_data is not None else None
+            if delay is None:
+                # for compatibility with legacy scans that do not record an acquisition delay
+                raise ValueError(
+                    "DAQ_DELAY_CORRECTION is on, but this scan records no acquisition delay. "
+                    "Re-import it from the original scan, or turn the option off."
+                )
+
         if self.filter is None:
-            self.pre_compute_filter(time_series.shape[-1], fs=fs, irf=irf)
+            self.pre_compute_filter(time_series.shape[-1], fs=fs, irf=irf, delay=delay)
 
         new_detectors = detectors
         if time_series.shape[0] * time_series.shape[1] > PAT_MAXIMUM_BATCH_SIZE != -1:
@@ -368,6 +410,11 @@ class PreProcessor(TimeSeriesProcessingAlgorithm):
             self.absolute == "abs"
         )
         attributes[PreprocessingAttributeTags.HILBERT_TRANSFORM] = self.hilbert
+        attributes[PreprocessingAttributeTags.ACQUISITION_DELAY_CORRECTION] = (
+            self.acquisition_delay_correction
+        )
+        attributes[PreprocessingAttributeTags.IRF_TIME_ZERO] = self.irf_time_zero
+        attributes["acquisition_delay_applied"] = delay
         attributes[PreprocessingAttributeTags.DETECTOR_INTERPOLATION] = (
             self.detector_factor
         )

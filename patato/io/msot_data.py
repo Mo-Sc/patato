@@ -150,6 +150,10 @@ class PAData:
         """Index of the frame where the user started recording, None if unknown."""
         return self.scan_reader.get_acquisition_start_frame()
 
+    def get_acquisition_delay(self) -> "float | None":
+        """Seconds between the laser pulse and the first recorded sample, None if unknown."""
+        return self.scan_reader.get_acquisition_delay()
+
     def get_clinical_metadata(self):
         return self.scan_reader.get_clinical_metadata()
 
