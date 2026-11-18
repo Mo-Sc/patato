@@ -293,6 +293,12 @@ class ReaderInterface(metaclass=ABCMeta):
     def get_speed_of_sound(self):
         pass
 
+    def get_acquisition_delay(self) -> "float | None":
+        """Seconds between the laser pulse and the first recorded sample, None when the
+        format does not record it.
+        """
+        return None
+
 
 class WriterInterface(metaclass=ABCMeta):
     def close(self):
@@ -325,6 +331,9 @@ class WriterInterface(metaclass=ABCMeta):
                     self.add_image(recon)
         self.set_scan_comment(reader.get_scan_comment())
         self.set_sampling_frequency(reader.get_sampling_frequency())
+        acquisition_delay = reader.get_acquisition_delay()
+        if acquisition_delay is not None:
+            self.set_acquisition_delay(acquisition_delay)
 
     @abstractmethod
     def set_segmentation(self, seg):
@@ -401,6 +410,9 @@ class WriterInterface(metaclass=ABCMeta):
     @abstractmethod
     def set_speed_of_sound(self, c: float):
         pass
+
+    def set_acquisition_delay(self, delay: float):
+        """Sets the seconds between the laser pulse and the first recorded sample."""
 
     @abstractmethod
     def add_roi(self, roi_data, generated: bool = False):

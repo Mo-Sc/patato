@@ -192,6 +192,10 @@ class PAData:
         """
         return self.scan_reader.get_speed_of_sound()
 
+    def get_acquisition_delay(self) -> Union[float, None]:
+        """Seconds between the laser pulse and the first recorded sample, None if unknown."""
+        return self.scan_reader.get_acquisition_delay()
+
     def get_scan_geometry(self) -> Union[np.ndarray, Array]:
         """
         Get the scan detector geometry.

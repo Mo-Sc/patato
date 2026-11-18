@@ -218,6 +218,9 @@ class HDF5Writer(WriterInterface):
         self.file[HDF5Tags.RAW_DATA].attrs[HDF5Tags.SPEED_OF_SOUND] = c
         self.file.attrs[HDF5Tags.SPEED_OF_SOUND] = c
 
+    def set_acquisition_delay(self, delay: float):
+        self.file.attrs[HDF5Tags.ACQUISITION_DELAY] = float(delay)
+
     def add_roi(self, roi_data: ROI, generated: bool = False):
         """
         Add a region of interest to the hdf5 file.
@@ -452,6 +455,10 @@ class HDF5Reader(ReaderInterface):
 
     def get_speed_of_sound(self):
         return self.file[HDF5Tags.RAW_DATA].attrs.get(HDF5Tags.SPEED_OF_SOUND, None)
+
+    def get_acquisition_delay(self) -> "float | None":
+        value = self.file.attrs.get(HDF5Tags.ACQUISITION_DELAY)
+        return None if value is None else float(value)
 
     def _get_segmentation(self):
         return self.file.get(HDF5Tags.SEGMENTATION, None)

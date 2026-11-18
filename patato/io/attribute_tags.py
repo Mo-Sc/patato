@@ -14,6 +14,8 @@ class PreprocessingAttributeTags:
     PROCESSING_ALGORITHM = "PREPROCESSING_ALGORITHM"
     COUPLANT_CORRECTION = "COUPLANT_CORRECTION"
     COUPLANT_PATH_LENGTH = "COUPLANT_PATH_LENGTH"
+    ACQUISITION_DELAY_CORRECTION = "DAQ_DELAY_CORRECTION"
+    IRF_TIME_ZERO = "IRF_TIME_ZERO"
 
 
 class ReconAttributeTags:
@@ -89,6 +91,7 @@ class HDF5Tags:
     ULTRASOUND = "ultrasound"
     ULTRASOUND_FIELD_OF_VIEW = "fov"
     SCAN_NAME = "name"
+    ACQUISITION_DELAY = "acquisition_delay"
     SEGMENTATION = "seg"
     DELTA_ICG = "dicg"
     BASELINE_ICG = "baseline_icg"
